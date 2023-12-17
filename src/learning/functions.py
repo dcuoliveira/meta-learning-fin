@@ -1,18 +1,23 @@
 import pandas as pd
 from tqdm import tqdm
+import warnings
 
-from models.Similarity import Similarity
+from models.Clustering import Clustering
+
+warnings.filterwarnings("ignore")
 
 def run_memory(data: pd.DataFrame,
                fix_start: bool,
                estimation_window: int,
                similarity_method: str,
-               k_opt_method: str,
-               clustering_method: str) -> dict:
+               clustering_method: str,
+               k_opt_method: str) -> dict:
     
-    simi = Similarity(method=similarity_method)
+    clustering = Clustering(similarity_method=similarity_method)
     
-    for step in tqdm(range(0, len(data) - estimation_window, 1), total=len(data) - estimation_window, desc="Build Memory"):
+    pbar = tqdm(range(0, len(data) - estimation_window, 1), total=len(data) - estimation_window)
+    all_clusters = []
+    for step in pbar:
 
         if fix_start or (step == 0):
             start = 0
@@ -22,19 +27,37 @@ def run_memory(data: pd.DataFrame,
         # subset train data
         train = data.iloc[start:(estimation_window + step), :]
 
-        # compute similarity measure
-        similarity = simi.compute_similarity(train=train, method=clustering_method)
+        # compute clusters for easy days
+        clusters = clustering.compute_clusters(data=train, method=clustering_method, k=3, k_opt_method=k_opt_method)
 
-        # compute optimal number of clusters
-        k_opt = simi.compute_k_opt(similarity=similarity, method=k_opt_method)
+        # subset clusters that appear less frequently
+        ## add clusters to train data
+        train["cluster"] = clusters
 
-        # compute easy clusters
-        clusters = simi.compute_clusters(similarity=similarity, k_opt=3)
+        ## compute cluster frequencies
+        cluster_freq = train["cluster"].value_counts(normalize=True)
 
-        # compute hard clusters
-        clusters = simi.compute_clusters(similarity=similarity, k_opt=k_opt)
+        ## subset clusters that appear less frequently
+        min_cluster = cluster_freq[cluster_freq == cluster_freq.min()].index[0]
 
-        # compute transition probabilities
-        transition_probs = simi.compute_transition_probs(clusters=clusters)
+        ## subset train data
+        train_easy = train[train["cluster"] == min_cluster]
+        train_hard = train[train["cluster"] != min_cluster]
+
+        # compute clusters for hard days
+        clusters = clustering.compute_clusters(data=train_hard, method=clustering_method, k_opt_method=k_opt_method)
+        train_hard["cluster"] = clusters
+        train_easy["cluster"] = clusters.max() + 1
+
+        # merge easy and hard clusters
+        train = pd.concat([train_easy, train_hard]).sort_index()
+
+        all_clusters.append(train[["cluster"]])
+        pbar.set_description(f"Building memory using window: {step}")
+
+    all_clusters_df = pd.concat(all_clusters, axis=0)
+
+    return all_clusters_df
+
         
 
