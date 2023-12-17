@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(description="Run forecast.")
 
 parser.add_argument("--estimation_window", type=int, default=12 * 4)
 parser.add_argument("--fix_start", type=bool, default=True)
+parser.add_argument("--similarity_method", type=str, default="cosine_similarity")
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
@@ -25,12 +26,16 @@ if __name__ == "__main__":
     data["date"] = pd.to_datetime(data["date"])
     data = data.set_index("date")
 
+    # compute moving average
+    data = data.rolling(window=12).mean()
+
     # drop missing values
     data = data.dropna()
 
     results = run_memory(data=data,
                          fix_start=args.fix_start,
                          estimation_window=args.estimation_window,
+                         similarity_method=args.similarity_method,
                          k_opt_method=args.k_opt_method,
                          clustering_method=args.clustering_method)
 
