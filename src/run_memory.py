@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description="Run forecast.")
 
 parser.add_argument("--estimation_window", type=int, default=12 * 4)
 parser.add_argument("--fix_start", type=bool, default=True)
-parser.add_argument("--similarity_method", type=str, default="cosine_similarity")
+parser.add_argument("--similarity_method", type=str, default="cosine-similarity")
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
@@ -32,21 +32,30 @@ if __name__ == "__main__":
     # drop missing values
     data = data.dropna()
 
-    results = run_memory(data=data,
-                         fix_start=args.fix_start,
-                         estimation_window=args.estimation_window,
-                         similarity_method=args.similarity_method,
-                         k_opt_method=args.k_opt_method,
-                         clustering_method=args.clustering_method)
+    memory = run_memory(data=data,
+                        fix_start=args.fix_start,
+                        estimation_window=args.estimation_window,
+                        similarity_method=args.similarity_method,
+                        k_opt_method=args.k_opt_method,
+                        clustering_method=args.clustering_method)
+    
+    results = {
 
-    results['args'] = args
+        "memory": memory,
+        "estimation_window": args.estimation_window,
+        "fix_start": args.fix_start,
+        "similarity_method": args.similarity_method,
+        "k_opt_method": args.k_opt_method,
+        "clustering_method": args.clustering_method
+
+    }
 
     # check if results folder exists
-    if not os.path.exists(os.path.join(args.outputs_path, args.fs_method, args.data_name)):
-        os.makedirs(os.path.join(args.outputs_path, args.fs_method, args.data_name))
+    if not os.path.exists(os.path.join(args.outputs_path, args.clustering_method)):
+        os.makedirs(os.path.join(args.outputs_path, args.clustering_method))
     
     # save results
     save_path = os.path.join(args.outputs_path,
                              args.clustering_method,
-                             f"{args.memory_input}_{args.k_opt_method}_{args.estimation_window}.pickle")
+                             f"{args.similarity_method}_{args.k_opt_method}.pkl")
     save_pickle(path=save_path, obj=results)

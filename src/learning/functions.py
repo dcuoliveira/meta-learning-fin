@@ -52,10 +52,10 @@ def run_memory(data: pd.DataFrame,
         # merge easy and hard clusters
         train = pd.concat([train_easy, train_hard]).sort_index()
 
-        all_clusters.append(train[["cluster"]])
+        all_clusters.append(train[["cluster"]].rename(columns={"cluster": f"cluster_step{step}"}))
         pbar.set_description(f"Building memory using window: {step}")
 
-    all_clusters_df = pd.concat(all_clusters, axis=0)
+    all_clusters_df = pd.concat(all_clusters, axis=1)
 
     return all_clusters_df
 
