@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances, manhattan_distances
 
 class Similarity:
     def __init__(self, item1, item2, similarity):
         self.available_similarities = ["cosine_similarity", "euclidean_distance", "manhattan_distance"]
 
-    def compute_similarity(self, data: pd.DataFrame, method: str) -> pd.DataFrame:
+    def compute_similarity(self, data: np.array, method: str) -> pd.DataFrame:
         """
         Compute similarity matrix.
         
