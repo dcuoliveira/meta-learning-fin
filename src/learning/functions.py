@@ -28,7 +28,7 @@ def run_memory(data: pd.DataFrame,
         train = data.iloc[start:(estimation_window + step), :]
 
         # compute clusters for easy days
-        clusters = clustering.compute_clusters(data=train, method=clustering_method, k=3, k_opt_method=k_opt_method)
+        clusters = clustering.compute_clusters(data=train, method=clustering_method, k=2, k_opt_method=k_opt_method)
 
         # subset clusters that appear less frequently
         ## add clusters to train data
