@@ -20,11 +20,11 @@ class Similarity:
         similarity : pd.DataFrame
             Similarity matrix.
         """
-        if method == "cosine-similarity":
+        if method == "cosine":
             similarity = cosine_similarity(data)
-        elif method == "euclidean-distance":
+        elif method == "euclidean":
             similarity = euclidean_distances(data)
-        elif method == "manhattan-distance":
+        elif method == "manhattan":
             similarity = manhattan_distances(data)
         else:
             raise ValueError(f"Invalid similarity method: {method}.")
