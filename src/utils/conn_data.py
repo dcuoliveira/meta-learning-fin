@@ -67,11 +67,12 @@ def save_result_in_blocks(results, args, path):
 def save_pickle(path: str,
                 obj: dict):
 
-    with bz2.BZ2File(path,'wb') as handle:
+    with open(path, 'wb') as handle:
         pickle.dump(obj, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 def load_pickle(path: str):
-    file = open(path, 'rb')
-    target_dict = pickle.load(file)
+
+    with open(path, 'rb') as handle:
+        target_dict = pickle.load(handle)
 
     return target_dict
