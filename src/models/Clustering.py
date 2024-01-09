@@ -81,10 +81,16 @@ class Clustering(Similarity):
 
         kmeans = KMeans(n_clusters=k, init='k-means++', max_iter=self.max_iter, n_init=self.n_init, random_state=0)
         clusters = kmeans.fit_predict(data)
+        cluster_centers = kmeans.cluster_centers_
 
-        return clusters
+        return clusters, cluster_centers
     
-    def compute_clusters(self, data: np.array, method: str="kmeans", k: int=None, k_opt_method: str="elbow") -> pd.DataFrame:
+    def compute_clusters(self,
+                         data: np.array,
+                         method: str="kmeans",
+                         k: int=None,
+                         k_opt_method: str="elbow",
+                         similarity_method: str=None) -> pd.DataFrame:
         """
         Compute clusters based on data and optimal number of clusters.
         
@@ -98,12 +104,18 @@ class Clustering(Similarity):
             Number of clusters, by default None.
         k_opt_method : str, optional
             Method to compute optimal number of clusters, by default "elbow".
+        similarity_method : str, optional
+            Similarity method, by default None.
         
         Returns
         -------
         clusters : pd.DataFrame
             Clusters.
         """
+
+        if similarity_method is not None:
+            self.similarity_method = similarity_method
+
         self.orig_data = data.copy()
 
         # preprocess data
@@ -116,8 +128,8 @@ class Clustering(Similarity):
 
         # compute clusters
         if method == "kmeans":
-            clusters = self.kmeans_wrapper(data=data, k=k)
+            clusters, cluster_centers = self.kmeans_wrapper(data=data, k=k)
         else:
             raise ValueError("Invalid clustering method.")
         
-        return clusters
+        return clusters, cluster_centers
