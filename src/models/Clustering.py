@@ -80,9 +80,11 @@ class Clustering(Similarity):
         """
 
         kmeans = KMeans(n_clusters=k, init='k-means++', max_iter=self.max_iter, n_init=self.n_init, random_state=0)
-        clusters = kmeans.fit_predict(data)
+        kmeans.fit(data)
+        clusters = kmeans.predict(data)
+        centroids = kmeans.cluster_centers_
 
-        return clusters
+        return clusters, centroids
     
     def compute_clusters(self, data: np.array, method: str="kmeans", k: int=None, k_opt_method: str="elbow") -> pd.DataFrame:
         """
@@ -116,8 +118,8 @@ class Clustering(Similarity):
 
         # compute clusters
         if method == "kmeans":
-            clusters = self.kmeans_wrapper(data=data, k=k)
+            clusters, centroids = self.kmeans_wrapper(data=data, k=k)
         else:
             raise ValueError("Invalid clustering method.")
         
-        return clusters
+        return clusters, centroids
