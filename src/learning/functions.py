@@ -11,10 +11,11 @@ warnings.filterwarnings("ignore")
 def run_memory(data: pd.DataFrame,
                fix_start: bool,
                estimation_window: int,
+               similarity_method: str,
                clustering_method: str,
                k_opt_method: str) -> dict:
 
-    low_pass_clustering = Clustering(similarity_method='euclidean-distance')
+    low_pass_clustering = Clustering(similarity_method='euclidean')
     clustering = Clustering(similarity_method=similarity_method)
     #k = clustering.compute_k_opt(data=data, k_opt_method=k_opt_method)
     k = 5
