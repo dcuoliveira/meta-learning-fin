@@ -86,7 +86,12 @@ class Clustering(Similarity):
 
         return clusters, centroids
     
-    def compute_clusters(self, data: np.array, method: str="kmeans", k: int=None, k_opt_method: str="elbow") -> pd.DataFrame:
+    def compute_clusters(self,
+                         data: np.array,
+                         method: str="kmeans",
+                         k: int=None,
+                         k_opt_method: str="elbow",
+                         similarity_method: str=None) -> pd.DataFrame:
         """
         Compute clusters based on data and optimal number of clusters.
         
@@ -100,12 +105,18 @@ class Clustering(Similarity):
             Number of clusters, by default None.
         k_opt_method : str, optional
             Method to compute optimal number of clusters, by default "elbow".
+        similarity_method : str, optional
+            Similarity method, by default None.
         
         Returns
         -------
         clusters : pd.DataFrame
             Clusters.
         """
+
+        if similarity_method is not None:
+            self.similarity_method = similarity_method
+
         self.orig_data = data.copy()
 
         # preprocess data

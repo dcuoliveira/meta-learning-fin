@@ -9,7 +9,6 @@ parser = argparse.ArgumentParser(description="Run forecast.")
 
 parser.add_argument("--estimation_window", type=int, default=12 * 4)
 parser.add_argument("--fix_start", type=bool, default=True)
-parser.add_argument("--similarity_method", type=str, default="cosine-similarity")
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
@@ -35,16 +34,16 @@ if __name__ == "__main__":
     memory = run_memory(data=data,
                         fix_start=args.fix_start,
                         estimation_window=args.estimation_window,
-                        similarity_method=args.similarity_method,
                         k_opt_method=args.k_opt_method,
                         clustering_method=args.clustering_method)
     
     results = {
 
-        "memory": memory,
+        "memory": memory["all_clusters"],
+        "cluster_centers_easy": memory["all_clusters_centers_easy"],
+        "cluster_centers_hard": memory["all_clusters_centers_hard"],
         "estimation_window": args.estimation_window,
         "fix_start": args.fix_start,
-        "similarity_method": args.similarity_method,
         "k_opt_method": args.k_opt_method,
         "clustering_method": args.clustering_method
 
@@ -57,5 +56,5 @@ if __name__ == "__main__":
     # save results
     save_path = os.path.join(args.outputs_path,
                              args.clustering_method,
-                             f"{args.similarity_method}_{args.k_opt_method}.pkl")
+                             f"{args.clustering_method}_{args.k_opt_method}.pkl")
     save_pickle(path=save_path, obj=results)
