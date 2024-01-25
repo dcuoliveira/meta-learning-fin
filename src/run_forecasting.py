@@ -31,19 +31,18 @@ if __name__ == "__main__":
     # drop missing values
     data = data.dropna()
 
+    # build memory
     memory = run_memory(data=data,
                         fix_start=args.fix_start,
                         estimation_window=args.estimation_window,
                         k_opt_method=args.k_opt_method,
                         clustering_method=args.clustering_method)
     
-    results = {
+    # generate forecasts given memory
+    forecasts = run_forecasts_given_memory()
 
-        "memory": memory,
-        "estimation_window": args.estimation_window,
-        "fix_start": args.fix_start,
-        "k_opt_method": args.k_opt_method,
-        "clustering_method": args.clustering_method
+
+    results = {
 
     }
 
