@@ -11,13 +11,12 @@ warnings.filterwarnings("ignore")
 def run_memory(data: pd.DataFrame,
                fix_start: bool,
                estimation_window: int,
-               similarity_method: str,
                clustering_method: str,
                k_opt_method: str) -> dict:
 
     low_pass_clustering = Clustering(similarity_method='euclidean')
-    clustering = Clustering(similarity_method=similarity_method)
-    #k = clustering.compute_k_opt(data=data, k_opt_method=k_opt_method)
+    clustering = Clustering(similarity_method='cosine')
+    # k = clustering.compute_k_opt(data=data, k_opt_method=k_opt_method)
     k = 5
     permutations = list(itertools.permutations(range(k)))
     
@@ -80,6 +79,7 @@ def run_memory(data: pd.DataFrame,
         # save clusters
         all_clusters.append(train[["cluster"]].rename(columns={"cluster": f"cluster_step{step}"}))
     all_clusters_df = pd.concat(all_clusters, axis=1)
+    
     return all_clusters_df
 
 def compute_transition_matrix(data: pd.DataFrame):
