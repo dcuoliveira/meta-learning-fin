@@ -1,8 +1,10 @@
 import argparse
 import pandas as pd
 import os
+import numpy as np
 
 from learning.memory import run_memory
+from learning.forecasts import run_forecasts
 from utils.conn_data import save_pickle
 
 parser = argparse.ArgumentParser(description="Run forecast.")
@@ -12,6 +14,7 @@ parser.add_argument("--fix_start", type=bool, default=True)
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default=None)
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
+parser.add_argument("--forecast_input", type=str, default="financial_data")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
 
@@ -19,27 +22,43 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
+    # load memory data and preprocess
+    memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
     
-    # fix dates
-    data["date"] = pd.to_datetime(data["date"])
-    data = data.set_index("date")
+    ## fix dates
+    memory_data["date"] = pd.to_datetime(memory_data["date"])
+    memory_data = memory_data.set_index("date")
 
-    # compute moving average
-    data = data.rolling(window=12).mean()
+    ## compute moving average
+    memory_data = memory_data.rolling(window=12).mean()
 
-    # drop missing values
-    data = data.dropna()
+    ## drop missing values
+    memory_data = memory_data.dropna()
+
+    # load forecast data and preprocess
+    forecast_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
+
+    ## fix dates
+    forecast_data["date"] = pd.to_datetime(forecast_data["date"])
+    forecast_data = forecast_data.set_index("date")
+
+    ## resample and compute returns
+    forecast_data = np.log(forecast_data.resample("B").last().ffill()).diff()
+
+    ## drop missing values
+    forecast_data = forecast_data.dropna()
 
     # build memory
-    memory = run_memory(data=data,
+    memory = run_memory(data=memory_data,
                         fix_start=args.fix_start,
                         estimation_window=args.estimation_window,
                         k_opt_method=args.k_opt_method,
                         clustering_method=args.clustering_method)
     
     # generate forecasts given memory
-    forecasts = run_forecasts_given_memory()
+    forecasts = run_forecasts(data=forecast_data,
+                              memory=memory,
+                              model="")
 
 
     results = {
