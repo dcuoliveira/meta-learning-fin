@@ -4,6 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 import warnings
 import itertools
+
 from models.Clustering import Clustering
 
 warnings.filterwarnings("ignore")
@@ -12,7 +13,7 @@ def run_memory(data: pd.DataFrame,
                fix_start: bool,
                estimation_window: int,
                clustering_method: str,
-               k_opt_method: str) -> dict:
+               k_opt_method: str,) -> dict:
 
     low_pass_clustering = Clustering(similarity_method='euclidean')
     clustering = Clustering(similarity_method='cosine')

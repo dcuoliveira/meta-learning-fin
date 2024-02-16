@@ -8,8 +8,7 @@ class ConvictionAdjustedMVO(Estimators):
     def __init__(self,
                  risk_aversion: float=1,
                  mean_estimator: str="mle",
-                 covariance_estimator: str="mle",
-                 conviction_levels: np.ndarray=None) -> None:
+                 covariance_estimator: str="mle") -> None:
         """
         This function implements the Mean-Variance Optimization (MVO) method with conviction-adjusted returns.
 
@@ -17,7 +16,6 @@ class ConvictionAdjustedMVO(Estimators):
             risk_aversion (float): Risk aversion parameter.
             mean_estimator (str): Mean estimator to be used.
             covariance_estimator (str): Covariance estimator to be used.
-            conviction_levels (np.ndarray): An array of conviction levels for each asset, which scales the expected returns.
 
         """
         super().__init__()
@@ -25,7 +23,6 @@ class ConvictionAdjustedMVO(Estimators):
         self.risk_aversion = risk_aversion
         self.mean_estimator = mean_estimator
         self.covariance_estimator = covariance_estimator
-        self.conviction_levels = conviction_levels  # Conviction levels for each asset
         self.estimated_means = list()
         self.estimated_covs = list()
 
@@ -54,10 +51,12 @@ class ConvictionAdjustedMVO(Estimators):
 
     def forward(self,
                 returns: torch.Tensor,
+                conviction_levels: np.ndarray,
                 num_timesteps_out: int,
                 long_only: bool=True) -> torch.Tensor:
         
         K = returns.shape[1]
+        self.conviction_levels = conviction_levels
 
         # mean estimator
         if self.mean_estimator == "mle":

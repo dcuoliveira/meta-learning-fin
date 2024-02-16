@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import numpy as np
 
-from learning.memory import run_memory
+from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
 from utils.conn_data import save_pickle
 
@@ -49,16 +49,22 @@ if __name__ == "__main__":
     forecast_data = forecast_data.dropna()
 
     # build memory
-    memory = run_memory(data=memory_data,
-                        fix_start=args.fix_start,
-                        estimation_window=args.estimation_window,
-                        k_opt_method=args.k_opt_method,
-                        clustering_method=args.clustering_method)
+    regimes = run_memory(data=memory_data,
+                         fix_start=args.fix_start,
+                         estimation_window=args.estimation_window,
+                         k_opt_method=args.k_opt_method,
+                         clustering_method=args.clustering_method)
+    
+    # compute transition probabilities
+    transition_prob = compute_transition_matrix(data=regimes)
     
     # generate forecasts given memory
     forecasts = run_forecasts(data=forecast_data,
-                              memory=memory,
-                              model="")
+                              regimes=regimes,
+                              regimes_prob=regimes_prob,
+                              transition_prob=transition_prob,
+                              estimation_window=args.estimation_window,
+                              portofolio_method=portfolio_method)
 
 
     results = {
