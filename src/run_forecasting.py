@@ -6,6 +6,7 @@ import numpy as np
 from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
 from utils.conn_data import save_pickle
+from models.utils import parse_portfolio_method
 
 parser = argparse.ArgumentParser(description="Run forecast.")
 
@@ -15,6 +16,8 @@ parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default=None)
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="financial_data")
+parser.add_argument("--portfolio_method", type=str, default="naive")
+parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
 
@@ -36,17 +39,17 @@ if __name__ == "__main__":
     memory_data = memory_data.dropna()
 
     # load forecast data and preprocess
-    forecast_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
+    prices = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
 
     ## fix dates
-    forecast_data["date"] = pd.to_datetime(forecast_data["date"])
-    forecast_data = forecast_data.set_index("date")
+    prices["date"] = pd.to_datetime(prices["date"])
+    prices = prices.set_index("date")
 
     ## resample and compute returns
-    forecast_data = np.log(forecast_data.resample("B").last().ffill()).diff()
+    returns = np.log(prices.resample("B").last().ffill()).diff()
 
     ## drop missing values
-    forecast_data = forecast_data.dropna()
+    returns = returns.dropna()
 
     # build memory
     regimes = run_memory(data=memory_data,
@@ -56,15 +59,19 @@ if __name__ == "__main__":
                          clustering_method=args.clustering_method)
     
     # compute transition probabilities
-    transition_prob = compute_transition_matrix(data=regimes)
+    transition_probs = compute_transition_matrix(data=regimes)
+
+    # parse portfolio method
+    model = parse_portfolio_method(portfolio_method=args.portfolio_method)
     
     # generate forecasts given memory
-    forecasts = run_forecasts(data=forecast_data,
+    forecasts = run_forecasts(returns=returns,
                               regimes=regimes,
-                              regimes_prob=regimes_prob,
-                              transition_prob=transition_prob,
+                              transition_probs=transition_probs,
                               estimation_window=args.estimation_window,
-                              portofolio_method=portfolio_method)
+                              portofolio_method=args.portfolio_method,
+                              num_assets_to_select=args.num_assets_to_select,
+                              fix_start=args.fix_start)
 
 
     results = {
