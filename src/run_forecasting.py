@@ -69,7 +69,7 @@ if __name__ == "__main__":
                               regimes=regimes,
                               transition_probs=transition_probs,
                               estimation_window=args.estimation_window,
-                              portofolio_method=args.portfolio_method,
+                              model=model,
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start)
 
