@@ -15,7 +15,7 @@ parser.add_argument("--fix_start", type=bool, default=True)
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default=None)
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
-parser.add_argument("--forecast_input", type=str, default="financial_data")
+parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="naive")
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
@@ -39,14 +39,16 @@ if __name__ == "__main__":
     memory_data = memory_data.dropna()
 
     # load forecast data and preprocess
-    prices = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
+    returns = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
+    returns = returns[[col for col in returns.columns if "t+1" not in col]]
 
     ## fix dates
-    prices["date"] = pd.to_datetime(prices["date"])
-    prices = prices.set_index("date")
+    returns["date"] = pd.to_datetime(returns["date"])
+    returns = returns.set_index("date")
 
-    ## resample and compute returns
-    returns = np.log(prices.resample("B").last().ffill()).diff()
+    ## resample and match memory data dates
+    returns = returns.resample("B").last().ffill()
+    returns = pd.merge(returns, memory_data[[memory_data.columns[0]]], left_index=True, right_index=True).drop(memory_data.columns[0], axis=1)
 
     ## drop missing values
     returns = returns.dropna()
