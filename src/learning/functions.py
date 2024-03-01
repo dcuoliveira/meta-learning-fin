@@ -8,6 +8,8 @@ from models.Clustering import Clustering
 
 warnings.filterwarnings("ignore")
 
+BEST_K = 5
+
 def run_memory(data: pd.DataFrame,
                fix_start: bool,
                estimation_window: int,
@@ -17,12 +19,16 @@ def run_memory(data: pd.DataFrame,
 
     low_pass_clustering = Clustering(similarity_method='euclidean')
     clustering = Clustering(similarity_method=similarity_method)
-    #k = clustering.compute_k_opt(data=data, k_opt_method=k_opt_method)
-    k = 5
+    
+    # we have already found that 5 is the optimal value for most recent data
+    # k = clustering.compute_k_opt(data=data, k_opt_method=k_opt_method)
+    k = BEST_K
     permutations = list(itertools.permutations(range(k)))
     
-    pbar = tqdm(range(0, len(data) - estimation_window, 1), total=len(data) - estimation_window)
+    pbar = tqdm(range(0, len(data) - estimation_window + 1, 1), total=len(data) - estimation_window)
     all_clusters = []
+    out_centroids = []
+    all_probs = []
     prev_centroid_map = None
     for step in pbar:
         pbar.set_description(f"Building memory using window: {step}")
@@ -36,26 +42,36 @@ def run_memory(data: pd.DataFrame,
 
         # compute clusters for easy days
         low_pass_k = 2
-        if pd.Timestamp('2021-06-01') < train.index.to_list()[-1]:
+        cutoff_date = pd.Timestamp('2021-06-01')
+        #cutoff_date = pd.Timestamp('2021-11-01')
+        if train.index.to_list()[-1] > cutoff_date:
             low_pass_k = 3
-        clusters, _ = low_pass_clustering.compute_clusters(data=train, method=clustering_method, k=low_pass_k, k_opt_method=k_opt_method)
+        clusters, euc_clusters, euc_probs = low_pass_clustering.compute_clusters(data=train, extra_data=train, method=clustering_method, k=low_pass_k, k_opt_method=k_opt_method)
 
         # find the cluster with the most observations and set as "hard days"
         train["cluster"] = clusters
-
-        lengths = []
+        cluster_sizes = []
         for i in range(low_pass_k):
             temp = train.loc[:, "cluster"] == i
             temp = temp[temp == True]
-            lengths.append(len(temp))
-        argmax = np.argmax(lengths)
+            cluster_sizes.append(len(temp))
+        largest_cluster = np.argmax(cluster_sizes)
 
         ## subset train data
-        train_hard = train[train.loc[:, "cluster"] == argmax]
-        train_easy = train[train.loc[:, "cluster"] != argmax]
+        train_hard = train[train.loc[:, "cluster"] == largest_cluster]
+        train_easy = train[train.loc[:, "cluster"] != largest_cluster]
+        temp = []
+        for i in range(low_pass_k):
+            if i == largest_cluster:
+                temp.insert(0, euc_clusters[i])
+            else:
+                temp.append(euc_clusters[i])
+        euc_clusters = np.array(temp)
+        euc_probs = np.concatenate([euc_probs[:, largest_cluster].reshape(-1, 1), np.delete(euc_probs, largest_cluster, axis=1)], axis=1)
 
         # compute clusters for hard days
-        clusters, _ = clustering.compute_clusters(data=train_hard, method=clustering_method, k=k)
+        clusters, hard_centroids, hard_probs = clustering.compute_clusters(data=train_hard, extra_data=train, method=clustering_method, k=k)
+
         train_easy["cluster"] = 0
         train_hard["cluster"] = clusters + 1
         # merge easy and hard clusters
@@ -75,18 +91,31 @@ def run_memory(data: pd.DataFrame,
                 cur_min = cur_count
                 best_perm = cur_perm
         train["cluster"] = train["cluster"].replace(range(0, k + 1), best_perm)
+        hard_centroids = hard_centroids[best_perm[1:] - 1]
+        hard_probs = hard_probs[:, best_perm[1:] - 1]
         prev_centroid_map = train["cluster"].values
 
         # save clusters
         all_clusters.append(train[["cluster"]].rename(columns={"cluster": f"cluster_step{step}"}))
+        out_centroids.append([euc_clusters, hard_centroids])
+
+        # calculate final probabilities
+        b = (4 * hard_probs.max(axis=1).reshape(-1, 1)) - 1
+        a = 1 - b
+        final_probs = euc_probs[:, 0].reshape(-1, 1) - euc_probs[:, 1:].reshape(euc_probs.shape[0], -1).max(axis=1).reshape(-1, 1)
+        final_probs = (1 - final_probs) / 2
+        final_probs = (a * (final_probs ** 2)) + (b * final_probs)
+        final_probs = np.concatenate([final_probs, hard_probs], axis=1)
+        final_probs = final_probs / final_probs.sum(axis=1, keepdims=True)
+        all_probs.append(final_probs)
     all_clusters_df = pd.concat(all_clusters, axis=1)
-    return all_clusters_df
+    return all_clusters_df, out_centroids, all_probs
 
 def compute_transition_matrix(data: pd.DataFrame):
     output = []
     for i in range(data.columns.size):
         cur_data = data[f"cluster_step{i}"]
-        transition_matrix = np.zeros((6, 6))
+        transition_matrix = np.zeros((BEST_K + 1, BEST_K + 1))
         for j in range(len(cur_data) - 1):
             cur = cur_data.iloc[j]
             nex = cur_data.iloc[j + 1]

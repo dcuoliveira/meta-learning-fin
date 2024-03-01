@@ -1,12 +1,14 @@
 import pandas as pd
 import numpy as np
 from kneed import KneeLocator
+from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
 
 from models.Similarity import Similarity
 
 class Clustering(Similarity):
-    def __init__(self, similarity_method: str=None, max_k: int=10, max_iter: int=300, n_init: int=10):
+    def __init__(self, similarity_method: str=None, max_k: int=10, max_iter: int=800, n_init: int=1):
         self.similarity_method = similarity_method
         self.max_k = max_k
         self.max_iter = max_iter
@@ -62,7 +64,7 @@ class Clustering(Similarity):
         else:
             raise ValueError("Invalid k_opt_method.")
         
-    def kmeans_wrapper(self, data: np.array, k: int):
+    def kmeans_wrapper(self, data: np.array, k: int, extra_data: np.array = None):
         """
         Wrapper for sklearn.cluster.KMeans.
 
@@ -79,15 +81,28 @@ class Clustering(Similarity):
             Clusters.
         """
 
+        # kmeans method
         kmeans = KMeans(n_clusters=k, init='k-means++', max_iter=self.max_iter, n_init=self.n_init, random_state=0)
         kmeans.fit(data)
         clusters = kmeans.predict(data)
         centroids = kmeans.cluster_centers_
+        probs = euclidean_distances(extra_data, centroids)
+        probs = probs / probs.sum(axis=1, keepdims=True)
+        probs = 1 - probs
+        probs = probs / probs.sum(axis=1, keepdims=True)
 
-        return clusters, centroids
+        # gaussian mixture method
+        #gmm = GaussianMixture(n_components=k, max_iter=self.max_iter, n_init=self.n_init, random_state=0, init_params='k-means++')
+        #gmm.fit(data)
+        #clusters = gmm.predict(data)
+        #centroids = gmm.means_
+        #probs = gmm.predict_proba(extra_data)
+
+        return clusters, centroids, probs
     
     def compute_clusters(self,
                          data: np.array,
+                         extra_data: np.array=None,
                          method: str="kmeans",
                          k: int=None,
                          k_opt_method: str="elbow",
@@ -121,7 +136,7 @@ class Clustering(Similarity):
 
         # preprocess data
         if self.similarity_method is not None:
-            data = self.compute_similarity(data=data, method=self.similarity_method)
+            data, extra_data = self.compute_similarity(data=data, method=self.similarity_method, extra_data=extra_data)
         
         # check if any default k is provided    
         if k is None:
@@ -129,8 +144,8 @@ class Clustering(Similarity):
 
         # compute clusters
         if method == "kmeans":
-            clusters, centroids = self.kmeans_wrapper(data=data, k=k)
+            clusters, centroids, probs = self.kmeans_wrapper(data=data, k=k, extra_data=extra_data)
         else:
             raise ValueError("Invalid clustering method.")
         
-        return clusters, centroids
+        return clusters, centroids, probs
