@@ -1,7 +1,5 @@
 import pandas as pd
 
-from ModelUtils import ModelUtils as mu
-
 class Naive:
     def __init__(self, num_assets_to_select: int):
         self.num_assets_to_select = num_assets_to_select
