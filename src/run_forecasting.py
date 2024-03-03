@@ -54,14 +54,14 @@ if __name__ == "__main__":
     returns = returns.dropna()
 
     # build memory
-    regimes = run_memory(data=memory_data,
-                         fix_start=args.fix_start,
-                         estimation_window=args.estimation_window,
-                         k_opt_method=args.k_opt_method,
-                         clustering_method=args.clustering_method)
+    regimes, centroids, regimes_probs = run_memory(data=memory_data,
+                                                   fix_start=args.fix_start,
+                                                   estimation_window=args.estimation_window,
+                                                   k_opt_method=args.k_opt_method,
+                                                   clustering_method=args.clustering_method)
     
     # compute transition probabilities
-    transition_probs = compute_transition_matrix(data=regimes)
+    regimes_transition_probs = compute_transition_matrix(data=regimes)
 
     # parse portfolio method
     model = mu.parse_portfolio_method(portfolio_method=args.portfolio_method)
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # generate forecasts given memory
     forecasts = run_forecasts(returns=returns,
                               regimes=regimes,
-                              transition_probs=transition_probs,
+                              transition_probs=regimes_transition_probs,
                               estimation_window=args.estimation_window,
                               model=model,
                               num_assets_to_select=args.num_assets_to_select,
