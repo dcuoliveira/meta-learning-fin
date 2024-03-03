@@ -6,7 +6,7 @@ import numpy as np
 from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
 from utils.conn_data import save_pickle
-from models.utils import parse_portfolio_method
+from models.ModelUtils import ModelUtils as mu
 
 parser = argparse.ArgumentParser(description="Run forecast.")
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     transition_probs = compute_transition_matrix(data=regimes)
 
     # parse portfolio method
-    model = parse_portfolio_method(portfolio_method=args.portfolio_method)
+    model = mu.parse_portfolio_method(portfolio_method=args.portfolio_method)
     
     # generate forecasts given memory
     forecasts = run_forecasts(returns=returns,
