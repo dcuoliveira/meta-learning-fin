@@ -109,12 +109,14 @@ def run_memory(data: pd.DataFrame,
         final_probs = final_probs / final_probs.sum(axis=1, keepdims=True)
         all_probs.append(final_probs)
     all_clusters_df = pd.concat(all_clusters, axis=1)
+
     return all_clusters_df, out_centroids, all_probs
 
 def compute_transition_matrix(data: pd.DataFrame):
     output = {}
     for i in range(data.columns.size):
         cur_data = data[f"cluster_step{i}"]
+        cur_date = cur_data.dropna().index[-1].strftime("%Y-%m-%d")
         transition_matrix = np.zeros((6, 6))
         for j in range(len(cur_data) - 1):
             cur = cur_data.iloc[j]
