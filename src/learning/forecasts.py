@@ -30,9 +30,13 @@ def run_forecasts(returns: pd.DataFrame,
 
         # future Regime Prediction
         transition_prob = transition_probs[cur_date]
+        # TODO - what should we do when we have more than one reigme with the same probability?
         next_regime = np.argmax(transition_prob[current_regime, :])
 
         # run model
-        pred = model_init.forward(returns=current_returns, current_regime=current_regime, next_regime=next_regime)
+        pred = model_init.forward(returns=current_returns,
+                                  regimes=current_regime_column,
+                                  current_regime=current_regime,
+                                  next_regime=next_regime)
         
         
