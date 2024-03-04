@@ -11,7 +11,7 @@ class Sharpe(nn.Module):
     def forward(self, returns, ascent=False, annualize=True):
         
         # portfolio sharpe
-        sharpe_ratio = (torch.mean(returns) / torch.std(returns)) * (np.sqrt(252) if annualize else 1)
+        sharpe_ratio = (torch.mean(returns) / torch.std(returns)) * (np.sqrt(12) if annualize else 1)
 
         return sharpe_ratio * (-1 if ascent else 1)
     

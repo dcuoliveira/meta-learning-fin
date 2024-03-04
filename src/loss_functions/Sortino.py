@@ -17,7 +17,7 @@ class Sortino(nn.Module):
         downside_vol = torch.std(downside_rets[~downside_rets.isnan()])
 
         # portfolio sharpe
-        sortino_ratio = (torch.mean(returns) / downside_vol) * (np.sqrt(252) if annualize else 1)
+        sortino_ratio = (torch.mean(returns) / downside_vol) * (np.sqrt(12) if annualize else 1)
 
         return sortino_ratio * (-1 if ascent else 1)
     
