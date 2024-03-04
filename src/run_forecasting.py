@@ -6,17 +6,19 @@ import numpy as np
 from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
 from utils.conn_data import save_pickle
+from utils.parsers import str_2_bool
 from models.ModelUtils import ModelUtils as mu
 
 parser = argparse.ArgumentParser(description="Run forecast.")
 
-parser.add_argument("--estimation_window", type=int, default=12 * 4)
+parser.add_argument("--estimation_window", type=int, default=12 * 8)
 parser.add_argument("--fix_start", type=bool, default=True)
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default=None)
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="naive")
+parser.add_argument("--long_only", type=str, default=False)
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
@@ -24,6 +26,7 @@ parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dir
 if __name__ == "__main__":
 
     args = parser.parse_args()
+    args.long_only = str_2_bool(args.long_only)
 
     # load memory data and preprocess
     memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
@@ -73,19 +76,25 @@ if __name__ == "__main__":
                               estimation_window=args.estimation_window,
                               model=model,
                               num_assets_to_select=args.num_assets_to_select,
-                              fix_start=args.fix_start)
+                              fix_start=args.fix_start,
+                              long_only=args.long_only)
 
 
     results = {
-
+        "regimes": regimes,
+        "centroids": centroids,
+        "regimes_probs": regimes_probs,
+        "transition_probs": regimes_transition_probs,
+        "model": model,
+        "forecasts": forecasts,
     }
 
     # check if results folder exists
-    if not os.path.exists(os.path.join(args.outputs_path, args.clustering_method)):
-        os.makedirs(os.path.join(args.outputs_path, args.clustering_method))
+    if not os.path.exists(os.path.join(args.outputs_path, args.portfolio_method)):
+        os.makedirs(os.path.join(args.outputs_path, args.portfolio_method))
     
     # save results
     save_path = os.path.join(args.outputs_path,
-                             args.clustering_method,
-                             f"results_{args.k_opt_method}.pkl")
+                             args.portfolio_method,
+                             f"results.pkl")
     save_pickle(path=save_path, obj=results)
