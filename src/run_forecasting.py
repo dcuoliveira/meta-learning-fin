@@ -18,7 +18,7 @@ parser.add_argument("--k_opt_method", type=str, default=None)
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="naive")
-parser.add_argument("--long_only", type=str, default=False)
+parser.add_argument("--long_only", type=str, default=True)
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
@@ -27,6 +27,11 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     args.long_only = str_2_bool(args.long_only)
+
+    if args.long_only:
+        long_only_tag = "lo"
+    else:
+        long_only_tag = "ls"
 
     # load memory data and preprocess
     memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
@@ -87,6 +92,7 @@ if __name__ == "__main__":
         "transition_probs": regimes_transition_probs,
         "model": model,
         "forecasts": forecasts,
+        "args": args
     }
 
     # check if results folder exists
@@ -96,5 +102,5 @@ if __name__ == "__main__":
     # save results
     save_path = os.path.join(args.outputs_path,
                              args.portfolio_method,
-                             f"results.pkl")
+                             f"results_{long_only_tag}_{args.num_assets_to_select}.pkl")
     save_pickle(path=save_path, obj=results)
