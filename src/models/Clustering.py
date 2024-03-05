@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from kneed import KneeLocator
-from sklearn.metrics.pairwise import euclidean_distances
+from sklearn.metrics.pairwise import euclidean_distances, cosine_distances
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 
@@ -86,7 +86,7 @@ class Clustering(Similarity):
         kmeans.fit(data)
         clusters = kmeans.predict(data)
         centroids = kmeans.cluster_centers_
-        probs = euclidean_distances(extra_data, centroids)
+        probs = kmeans.transform(extra_data)
         probs = probs / probs.sum(axis=1, keepdims=True)
         probs = 1 - probs
         probs = probs / probs.sum(axis=1, keepdims=True)

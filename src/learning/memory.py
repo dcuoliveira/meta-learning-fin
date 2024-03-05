@@ -91,8 +91,12 @@ def run_memory(data: pd.DataFrame,
                 cur_min = cur_count
                 best_perm = cur_perm
         train["cluster"] = train["cluster"].replace(range(0, k + 1), best_perm)
-        hard_centroids = hard_centroids[best_perm[1:] - 1]
-        hard_probs = hard_probs[:, best_perm[1:] - 1]
+        train["cluster"] = train["cluster"].astype(int)
+        perm_indices = np.array(range(0, k + 1))
+        for i in range(0, k + 1):
+            perm_indices[i] = np.where(best_perm == i)[0]
+        hard_centroids = hard_centroids[perm_indices[1:] - 1]
+        hard_probs = hard_probs[:, perm_indices[1:] - 1]
         prev_centroid_map = train["cluster"].values
 
         # save clusters
@@ -100,11 +104,10 @@ def run_memory(data: pd.DataFrame,
         out_centroids.append([euc_clusters, hard_centroids])
 
         # calculate final probabilities
-        b = (4 * hard_probs.max(axis=1).reshape(-1, 1)) - 1
-        a = 1 - b
+        a = hard_probs.max(axis=1).reshape(-1, 1) / np.log(0.5)
         final_probs = euc_probs[:, 0].reshape(-1, 1) - euc_probs[:, 1:].reshape(euc_probs.shape[0], -1).max(axis=1).reshape(-1, 1)
         final_probs = (1 - final_probs) / 2
-        final_probs = (a * (final_probs ** 2)) + (b * final_probs)
+        final_probs = a * (np.log(1 - final_probs))
         final_probs = np.concatenate([final_probs, hard_probs], axis=1)
         final_probs = final_probs / final_probs.sum(axis=1, keepdims=True)
         all_probs.append(final_probs)
