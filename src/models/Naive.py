@@ -6,7 +6,9 @@ class Naive:
         self.num_assets_to_select = num_assets_to_select
         self.long_only = long_only
 
-    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, next_regime: int):
+    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray):
+
+        next_regime = np.argmax(transition_prob[current_regime, :])
 
         labelled_returns = pd.merge(returns, regimes, left_index=True, right_index=True)
         
