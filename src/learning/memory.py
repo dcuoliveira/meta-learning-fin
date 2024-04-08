@@ -25,13 +25,12 @@ def run_memory(data: pd.DataFrame,
     k = BEST_K
     permutations = list(itertools.permutations(range(k)))
     
-    pbar = tqdm(range(0, len(data) - estimation_window + 1, 1), total=len(data) - estimation_window)
+    pbar = tqdm(range(0, len(data) - estimation_window, 1), total=len(data) - estimation_window)
     all_clusters = []
     out_centroids = []
     all_probs = []
     prev_centroid_map = None
     for step in pbar:
-        pbar.set_description(f"Building memory using window: {step}")
         if fix_start:
             start = 0
         else:
@@ -111,6 +110,8 @@ def run_memory(data: pd.DataFrame,
         final_probs = np.concatenate([final_probs, hard_probs], axis=1)
         final_probs = final_probs / final_probs.sum(axis=1, keepdims=True)
         all_probs.append(final_probs)
+        pbar.set_description(f"Building memory using window: {step}")
+
     all_clusters_df = pd.concat(all_clusters, axis=1)
 
     return all_clusters_df, out_centroids, all_probs
