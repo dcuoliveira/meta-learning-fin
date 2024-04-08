@@ -36,19 +36,19 @@ def run_forecasts(returns: pd.DataFrame,
 
         # future Regime Prediction
         transition_prob = transition_probs[cur_date]
-        # TODO - what should we do when we have more than one reigme with the same probability?
-        probable_next_regime = np.argmax(transition_prob[current_regime, :])
 
         # run model
         positions = model_init.forward(returns=current_returns,
                                        regimes=current_regime_column,
                                        current_regime=current_regime,
-                                       next_regime=probable_next_regime)
+                                       transition_prob=transition_prob)
         
         # store positions
-        all_positions.append(pd.DataFrame(positions, columns=[pred_date]).T)
+        all_positions.append(pd.DataFrame({pred_date: positions}).T)
     
     all_positions_df = pd.concat(all_positions).fillna(0)
+    all_positions_df.columns.name = None
+    all_positions_df.index.name = "date"
 
     return all_positions_df
         
