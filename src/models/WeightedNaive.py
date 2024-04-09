@@ -44,6 +44,21 @@ class WeightedNaive:
             expected_sharpes = expected_sharpes.groupby("asset").sum("weighted_sharpe").sort_values(by="weighted_sharpe", ascending=False)
             positions = expected_sharpes["weighted_sharpe"] / expected_sharpes["weighted_sharpe"].sum()
         else:
-            raise NotImplementedError
+            expected_sharpe_longs = expected_sharpes[expected_sharpes["sharpe"] > 0]
+            expected_sharpe_shorts = expected_sharpes[expected_sharpes["sharpe"] < 0]
+
+            expected_sharpe_longs = expected_sharpe_longs.groupby("asset").sum("weighted_sharpe").sort_values(by="weighted_sharpe", ascending=False)
+            positions_longs = expected_sharpe_longs["weighted_sharpe"] / expected_sharpe_longs["weighted_sharpe"].sum()
+
+            expected_sharpe_shorts = expected_sharpe_shorts.groupby("asset").sum("weighted_sharpe").sort_values(by="weighted_sharpe", ascending=False)
+            positions_shorts = (expected_sharpe_shorts["weighted_sharpe"] / expected_sharpe_shorts["weighted_sharpe"].sum() * -1)
+
+            positions = pd.concat([positions_longs, positions_shorts])
+            positions = positions.reset_index().groupby("asset").sum().sort_values(by="weighted_sharpe")
+            positions_longs = positions[positions["weighted_sharpe"] > 0]
+            positions_longs = positions_longs / positions_longs.sum()
+            positions_shorts = positions[positions["weighted_sharpe"] < 0]
+            positions_shorts = (positions_shorts / positions_shorts.sum() * -1)
+            positions = pd.concat([positions_longs, positions_shorts])["weighted_sharpe"]
 
         return positions
