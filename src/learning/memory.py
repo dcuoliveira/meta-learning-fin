@@ -91,7 +91,7 @@ def run_memory(data: pd.DataFrame,
                 cur_min = cur_count
                 best_perm = cur_perm
         train["cluster"] = train["cluster"].replace(range(0, k + 1), best_perm)
-        train["cluster"] = train["cluster"].astype(int)
+        train["cluster"] = train["cluster"].astype(float)
         perm_indices = np.array(range(0, k + 1))
         for i in range(0, k + 1):
             perm_indices[i] = np.where(best_perm == i)[0]

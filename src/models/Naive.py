@@ -9,6 +9,7 @@ class Naive:
     def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, next_regime: int):
 
         labelled_returns = pd.merge(returns, regimes, left_index=True, right_index=True)
+        
         cluster_name = labelled_returns.columns[-1]
 
         # select dates that match the next regime
@@ -21,9 +22,9 @@ class Naive:
         # select top/bottom assets
         if self.long_only:
             selected_assets = expected_sharpe.index[:self.num_assets_to_select]
-            positions = pd.Series(1, index=selected_assets)
+            positions = pd.Series([self.num_assets_to_select * (expected_sharpe[i] / expected_sharpe[:self.num_assets_to_select].sum()) for i in range(self.num_assets_to_select)], index=selected_assets)
         else:
             selected_assets = expected_sharpe.index[:self.num_assets_to_select].append(expected_sharpe.index[-self.num_assets_to_select:])
-            positions = pd.Series([1] * self.num_assets_to_select + [-1] * self.num_assets_to_select, index=selected_assets)
-
+            es_abs = expected_sharpe[expected_sharpe.abs().sort_values(ascending=False).index[:self.num_assets_to_select]]
+            positions = pd.Series([self.num_assets_to_select * (es_abs.abs()[i] / es_abs.abs().sum()) if es_abs[i] >= 0 else -1 * self.num_assets_to_select * (es_abs.abs()[i] / es_abs.abs().sum()) for i in range(self.num_assets_to_select)], index=es_abs.index)
         return positions

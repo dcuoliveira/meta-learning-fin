@@ -11,14 +11,14 @@ from models.ModelUtils import ModelUtils as mu
 
 parser = argparse.ArgumentParser(description="Run forecast.")
 
-parser.add_argument("--estimation_window", type=int, default=12 * 8)
+parser.add_argument("--estimation_window", type=int, default=12 * 4)
 parser.add_argument("--fix_start", type=bool, default=True)
 parser.add_argument("--clustering_method", type=str, default="kmeans")
-parser.add_argument("--k_opt_method", type=str, default=None)
+parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="naive")
-parser.add_argument("--long_only", type=str, default=True)
+parser.add_argument("--long_only", type=str, default="True")
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
@@ -39,6 +39,12 @@ if __name__ == "__main__":
     ## fix dates
     memory_data["date"] = pd.to_datetime(memory_data["date"])
     memory_data = memory_data.set_index("date")
+    memory_data = memory_data.astype(float)
+    
+    # fill missing values
+    memory_data = memory_data.interpolate(method='linear', limit_direction='forward', axis=0)
+    memory_data = memory_data.fillna(method='ffill')
+    memory_data = memory_data.fillna(method='bfill')
 
     ## compute moving average
     memory_data = memory_data.rolling(window=12).mean()
@@ -52,10 +58,12 @@ if __name__ == "__main__":
 
     ## fix dates
     returns["date"] = pd.to_datetime(returns["date"])
+    returns["date"] = returns["date"] + pd.DateOffset(months=1)
     returns = returns.set_index("date")
+    memory_data = memory_data.astype(float)
 
     ## resample and match memory data dates
-    returns = returns.resample("B").last().ffill()
+    returns = returns.resample("MS").last().ffill()
     returns = pd.merge(returns, memory_data[[memory_data.columns[0]]], left_index=True, right_index=True).drop(memory_data.columns[0], axis=1)
 
     ## drop missing values
