@@ -23,10 +23,12 @@ class Naive:
 
         # select top/bottom assets
         if self.long_only:
-            selected_assets = expected_sharpe.index[:self.num_assets_to_select]
-            positions = pd.Series([self.num_assets_to_select * (expected_sharpe[i] / expected_sharpe[:self.num_assets_to_select].sum()) for i in range(self.num_assets_to_select)], index=selected_assets)
+            # count number of positive values
+            n_pos = (expected_sharpe > 0).sum()
+            cur_num_assets_to_select = min(self.num_assets_to_select, n_pos)
+            selected_assets = expected_sharpe.index[:cur_num_assets_to_select]
+            positions = pd.Series([(expected_sharpe[i] / expected_sharpe[:cur_num_assets_to_select].sum()) for i in range(cur_num_assets_to_select)], index=selected_assets)
         else:
-            selected_assets = expected_sharpe.index[:self.num_assets_to_select].append(expected_sharpe.index[-self.num_assets_to_select:])
             es_abs = expected_sharpe[expected_sharpe.abs().sort_values(ascending=False).index[:self.num_assets_to_select]]
-            positions = pd.Series([self.num_assets_to_select * (es_abs.abs()[i] / es_abs.abs().sum()) if es_abs[i] >= 0 else -1 * self.num_assets_to_select * (es_abs.abs()[i] / es_abs.abs().sum()) for i in range(self.num_assets_to_select)], index=es_abs.index)
+            positions = pd.Series([(es_abs.abs()[i] / es_abs.abs().sum()) if es_abs[i] >= 0 else -1 * (es_abs.abs()[i] / es_abs.abs().sum()) for i in range(self.num_assets_to_select)], index=es_abs.index)
         return positions

@@ -9,7 +9,8 @@ def run_forecasts(returns: pd.DataFrame,
                   model: object,
                   num_assets_to_select: int,
                   fix_start: bool = False,
-                  long_only: bool = False):
+                  long_only: bool = False,
+                  random_regime: bool = False):
     
     model_init = model(num_assets_to_select=num_assets_to_select, long_only=long_only)
 
@@ -33,6 +34,8 @@ def run_forecasts(returns: pd.DataFrame,
         regime_label = regimes_index[regimes_index == cur_date].index[0]
         current_regime_column = regimes.loc[:, regime_label]
         current_regime = int(current_regime_column[~np.isnan(current_regime_column)][-1])
+        if random_regime:
+            current_regime = np.random.choice(list(range(6)))
 
         # future Regime Prediction
         transition_prob = transition_probs[cur_date]

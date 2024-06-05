@@ -12,14 +12,15 @@ from models.ModelUtils import ModelUtils as mu
 parser = argparse.ArgumentParser(description="Run forecast.")
 
 parser.add_argument("--estimation_window", type=int, default=12 * 4)
-parser.add_argument("--fix_start", type=bool, default=True)
+parser.add_argument("--fix_start", type=str, default="True")
 parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="weighted-naive") # e.g. weighted-naive, naive
-parser.add_argument("--long_only", type=str, default=True)
-parser.add_argument("--num_assets_to_select", type=int, default=None)
+parser.add_argument("--long_only", type=str, default="True")
+parser.add_argument("--num_assets_to_select", type=int, default=3)
+parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
 
@@ -27,6 +28,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     args.long_only = str_2_bool(args.long_only)
+    args.fix_start = str_2_bool(args.fix_start)
+    args.random_regime = str_2_bool(args.random_regime)
 
     if args.long_only:
         long_only_tag = "lo"
@@ -90,7 +93,8 @@ if __name__ == "__main__":
                               model=model,
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start,
-                              long_only=args.long_only)
+                              long_only=args.long_only,
+                              random_regime=args.random_regime)
 
 
     results = {
@@ -108,7 +112,12 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(args.outputs_path, args.portfolio_method))
     
     # save results
-    file_name = f"results_{long_only_tag}_{args.num_assets_to_select}.pkl" if args.num_assets_to_select is not None else f"results_{long_only_tag}.pkl"
+    file_name = f"results_{long_only_tag}"
+    if args.num_assets_to_select is not None:
+        file_name += f"_{args.num_assets_to_select}"
+    if args.random_regime:
+        file_name += "_rand"
+    file_name += ".pkl"
     save_path = os.path.join(args.outputs_path,
                              args.portfolio_method,
                              file_name)
