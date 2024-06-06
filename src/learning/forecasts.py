@@ -9,10 +9,10 @@ def run_forecasts(returns: pd.DataFrame,
                   model: object,
                   num_assets_to_select: int,
                   fix_start: bool = False,
-                  long_only: bool = False,
+                  long_strategy: str = 'mixed',
                   random_regime: bool = False):
     
-    model_init = model(num_assets_to_select=num_assets_to_select, long_only=long_only)
+    model_init = model(num_assets_to_select=num_assets_to_select, long_strategy=long_strategy)
 
     pbar = tqdm(range(0, len(returns) - estimation_window, 1), total=len(returns) - estimation_window, desc="Running Forecasts")
     all_positions = []

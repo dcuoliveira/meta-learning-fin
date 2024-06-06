@@ -4,9 +4,9 @@ import numpy as np
 from utils.activation_functions import sigmoid
 
 class WeightedNaive:
-    def __init__(self, num_assets_to_select: int, long_only: bool = False):
+    def __init__(self, num_assets_to_select: int, long_strategy: str = 'mixed'):
         self.num_assets_to_select = num_assets_to_select
-        self.long_only = long_only
+        self.long_strategy = long_strategy
 
     def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray):
 
@@ -29,7 +29,7 @@ class WeightedNaive:
             expected_sharpe = next_regime_returns.mean() / next_regime_returns.std()
             expected_sharpe = expected_sharpe.sort_values(ascending=False)
 
-            if self.long_only:
+            if self.long_strategy == 'long_only':
                 expected_sharpe = expected_sharpe[expected_sharpe > 0]
 
             expected_sharpe = expected_sharpe.reset_index()
@@ -40,7 +40,7 @@ class WeightedNaive:
         expected_sharpes = pd.concat(expected_sharpes)
         expected_sharpes["weighted_sharpe"] = expected_sharpes["sharpe"] * expected_sharpes["prob"]
 
-        if self.long_only:
+        if self.long_strategy == 'long_only':
             expected_sharpes = expected_sharpes.groupby("asset").sum("weighted_sharpe").sort_values(by="weighted_sharpe", ascending=False)
             positions = expected_sharpes["weighted_sharpe"] / expected_sharpes["weighted_sharpe"].sum()
         else:

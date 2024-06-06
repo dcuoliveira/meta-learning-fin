@@ -18,7 +18,7 @@ parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
 parser.add_argument("--portfolio_method", type=str, default="weighted-naive") # e.g. weighted-naive, naive
-parser.add_argument("--long_only", type=str, default="True")
+parser.add_argument("--long_strategy", type=str, default="mixed")
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
@@ -27,14 +27,15 @@ parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dir
 if __name__ == "__main__":
 
     args = parser.parse_args()
-    args.long_only = str_2_bool(args.long_only)
     args.fix_start = str_2_bool(args.fix_start)
     args.random_regime = str_2_bool(args.random_regime)
 
-    if args.long_only:
+    if args.long_strategy == "long_only":
         long_only_tag = "lo"
-    else:
+    elif args.long_strategy == "long_short":
         long_only_tag = "ls"
+    elif args.long_strategy == "mixed":
+        long_only_tag = "mx"
 
     # load memory data and preprocess
     memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
@@ -93,7 +94,7 @@ if __name__ == "__main__":
                               model=model,
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start,
-                              long_only=args.long_only,
+                              long_strategy=args.long_strategy,
                               random_regime=args.random_regime)
 
 
