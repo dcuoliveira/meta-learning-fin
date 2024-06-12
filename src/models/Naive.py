@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 
 class Naive:
-    def __init__(self, num_assets_to_select: int, long_strategy: str = 'mixed'):
+    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed'):
         self.num_assets_to_select = num_assets_to_select
-        self.long_strategy = long_strategy
+        self.strategy_type = strategy_type
 
     def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray):
 
@@ -21,11 +21,11 @@ class Naive:
         expected_sharpe = next_regime_returns.mean() / next_regime_returns.std()
         expected_sharpe = expected_sharpe.sort_values(ascending=False)
 
-        if self.long_strategy == 'long_only':
+        if self.strategy_type == 'long_only':
             do_long_only = True
-        elif self.long_strategy == 'long_short':
+        elif self.strategy_type == 'long_short':
             do_long_only = False
-        elif self.long_strategy == 'mixed':
+        elif self.strategy_type == 'mixed':
             do_long_only = not (next_regime == 0)
         # select top/bottom assets
         if do_long_only:

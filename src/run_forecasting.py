@@ -17,8 +17,8 @@ parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
-parser.add_argument("--portfolio_method", type=str, default="weighted-naive") # e.g. weighted-naive, naive
-parser.add_argument("--long_strategy", type=str, default="mixed")
+parser.add_argument("--portfolio_method", type=str, default="naive", choices=["naive", "weighted-naive"])
+parser.add_argument("--strategy_type", type=str, default="long_only", choices=["long_only", "long_short", "mixed"])
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
@@ -30,11 +30,11 @@ if __name__ == "__main__":
     args.fix_start = str_2_bool(args.fix_start)
     args.random_regime = str_2_bool(args.random_regime)
 
-    if args.long_strategy == "long_only":
+    if args.strategy_type == "long_only":
         long_only_tag = "lo"
-    elif args.long_strategy == "long_short":
+    elif args.strategy_type == "long_short":
         long_only_tag = "ls"
-    elif args.long_strategy == "mixed":
+    elif args.strategy_type == "mixed":
         long_only_tag = "mx"
 
     # load memory data and preprocess
@@ -94,7 +94,7 @@ if __name__ == "__main__":
                               model=model,
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start,
-                              long_strategy=args.long_strategy,
+                              strategy_type=args.strategy_type,
                               random_regime=args.random_regime)
 
 
