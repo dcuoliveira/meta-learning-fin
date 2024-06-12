@@ -1,4 +1,3 @@
-from models.ConvictionAdjustedMVO import ConvictionAdjustedMVO
 from models.Naive import Naive
 from models.WeightedNaive import WeightedNaive
 
@@ -12,8 +11,6 @@ class ModelUtils:
             return Naive
         elif portfolio_method == "weighted-naive":
             return WeightedNaive
-        elif portfolio_method == "conviction_mvo":
-            return ConvictionAdjustedMVO
         else:
             raise ValueError(f"Invalid portfolio method: {portfolio_method}")
     
