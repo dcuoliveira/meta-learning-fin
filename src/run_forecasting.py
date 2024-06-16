@@ -17,8 +17,12 @@ parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
-parser.add_argument("--portfolio_method", type=str, default="naive", choices=["naive", "weighted-naive"])
-parser.add_argument("--strategy_type", type=str, default="long_only", choices=["long_only", "long_short", "mixed"])
+parser.add_argument("--portfolio_method", type=str, default="linear-ridge", choices=["naive", "weighted-naive", "linear-ols", "linear-ridge", "linear-lasso"])
+parser.add_argument("--cv_split_type", type=str, default="tscv", choices=["tscv", "cv"]) # tscv
+parser.add_argument("--cv_search_type", type=str, default="random", choices=["random", "grid"]) # random
+parser.add_argument("--cv_folds", type=int, default=5) # 5
+parser.add_argument("--cv_iters", type=int, default=20) # 20
+parser.add_argument("--strategy_type", type=str, default="long_short", choices=["long_only", "long_short", "mixed"])
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
@@ -88,15 +92,20 @@ if __name__ == "__main__":
     
     # generate forecasts given memory
     forecasts = run_forecasts(returns=returns,
+                              features=memory_data,
                               regimes=regimes,
                               transition_probs=regimes_transition_probs,
                               estimation_window=args.estimation_window,
                               model=model,
+                              portfolio_method=args.portfolio_method,
+                              cv_split_type=args.cv_split_type,
+                              cv_search_type=args.cv_search_type,
+                              cv_folds=args.cv_folds,
+                              cv_iters=args.cv_iters,
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start,
                               strategy_type=args.strategy_type,
                               random_regime=args.random_regime)
-
 
     results = {
         "regimes": regimes,
