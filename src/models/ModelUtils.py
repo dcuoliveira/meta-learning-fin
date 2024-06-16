@@ -1,5 +1,7 @@
 from models.Naive import Naive
 from models.WeightedNaive import WeightedNaive
+from models.LinearModels import LinearModels
+
 
 class ModelUtils:
     def __init__(self):
@@ -11,6 +13,8 @@ class ModelUtils:
             return Naive
         elif portfolio_method == "weighted-naive":
             return WeightedNaive
+        elif portfolio_method.startswith("linear"):
+            return LinearModels
         else:
             raise ValueError(f"Invalid portfolio method: {portfolio_method}")
     
