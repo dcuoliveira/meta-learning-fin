@@ -4,11 +4,11 @@ import numpy as np
 from utils.activation_functions import sigmoid
 
 class WeightedNaive:
-    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed'):
+    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed', **kwargs):
         self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
 
-    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray):
+    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray, **kwargs):
 
         weights_next_regime = transition_prob[current_regime, :]
 

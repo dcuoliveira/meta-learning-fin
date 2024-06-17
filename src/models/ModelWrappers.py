@@ -36,7 +36,8 @@ class LassoWrapper():
 
         self.model_name = "lasso"
         self.param_grid = {'alpha': alpha_path,
-                           'fit_intercept': [True, False]}
+                           'fit_intercept': [True, False],
+                           'max_iter': [10000000]}
         if model_params is None:
             self.ModelClass = Lasso()
         else:

@@ -2,11 +2,11 @@ import pandas as pd
 import numpy as np
 
 class Naive:
-    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed'):
+    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed', **kwargs):
         self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
 
-    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray):
+    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray, **kwargs):
 
         next_regime = np.argmax(transition_prob[current_regime, :])
 
@@ -27,6 +27,7 @@ class Naive:
             do_long_only = False
         elif self.strategy_type == 'mixed':
             do_long_only = not (next_regime == 0)
+            
         # select top/bottom assets
         if do_long_only:
             n_pos = (expected_sharpe > 0).sum()
