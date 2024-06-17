@@ -5,8 +5,16 @@ from models.ModelWrappers import LinearRegressionWrapper, LassoWrapper, RidgeWra
 from learning.hyper_params_search import hyper_params_search
 
 class LinearModels:
-    def __init__(self, portfolio_method: str, cv_search_type: str, cv_split_type: str, cv_folds: int, cv_iters: int, **kwargs):
+    def __init__(self,
+                 strategy_type: str, 
+                 portfolio_method: str,
+                 cv_search_type: str,
+                 cv_split_type: str,
+                 cv_folds: int,
+                 cv_iters: int,
+                 **kwargs):
         
+        self.strategy_type = strategy_type
         self.cv_search_type = cv_search_type
         self.cv_split_type = cv_split_type
         self.cv_folds = cv_folds
@@ -47,19 +55,41 @@ class LinearModels:
                 # training data
                 train_df = pd.merge(next_regime_returns[[target]], features, left_index=True, right_index=True)
 
+                if train_df.shape[0] < self.cv_folds + 1:
+                    continue
+
                 # search for the best hyperparameters
                 model_search = hyper_params_search(df=train_df,
-                                                   wrapper=self.model,
-                                                   search_type=self.cv_search_type,
-                                                   n_iter=self.cv_iters,
-                                                   n_splits=self.cv_folds,
-                                                   n_jobs=-1,
-                                                   seed=self.seed,
-                                                   target_name=target)
+                                                wrapper=self.model,
+                                                search_type=self.cv_search_type,
+                                                n_iter=self.cv_iters,
+                                                n_splits=self.cv_folds,
+                                                n_jobs=-1,
+                                                seed=self.seed,
+                                                target_name=target)
 
                 X_test = test_features.values
                 test_prediction = model_search.best_estimator_.predict(X_test)
-                result = pd.DataFrame({"etf": target, "regime": next_regime, "prediction": test_prediction})
+                result = pd.DataFrame({"etf": target,
+                                       "regime": next_regime,
+                                       "weight": transition_prob[current_regime, :][next_regime],
+                                       "prediction": test_prediction})
                 all_predictions.append(result)
+                
+        if len(all_predictions) == 0:
+            return pd.Series(0, index=returns.columns)
+        else:
+            all_predictions_df = pd.concat(all_predictions, axis=0)
+            all_predictions_df["weight"] = all_predictions_df["weight"] / all_predictions_df["weight"].unique().sum()
+            all_predictions_df["weighted_prediction"] = all_predictions_df["weight"] * all_predictions_df["prediction"]
+            positions = all_predictions_df.groupby(["etf"]).sum()[["weighted_prediction"]]
+
+            # check if long only or long short
+            if self.strategy_type == "long_only":
+                positions = positions[positions["weighted_prediction"] > 0]
+            else:
+                positions = np.tanh(positions)
+            positions = positions / positions.sum()
+            positions = positions["weighted_prediction"]
 
         return positions
