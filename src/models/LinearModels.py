@@ -3,9 +3,11 @@ import numpy as np
 
 from models.ModelWrappers import LinearRegressionWrapper, LassoWrapper, RidgeWrapper
 from learning.hyper_params_search import hyper_params_search
+from portfolio_tools.PositionSizing import PositionSizing
 
-class LinearModels:
+class LinearModels(PositionSizing):
     def __init__(self,
+                 num_assets_to_select: int,
                  strategy_type: str, 
                  portfolio_method: str,
                  cv_search_type: str,
@@ -14,6 +16,7 @@ class LinearModels:
                  cv_iters: int,
                  **kwargs):
         
+        self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
         self.cv_search_type = cv_search_type
         self.cv_split_type = cv_split_type
@@ -44,7 +47,7 @@ class LinearModels:
         
         cluster_name = labelled_returns.columns[-1]
 
-        all_predictions = []
+        forecasts = []
         for next_regime in next_regimes:
 
             # select dates that match the next regime
@@ -74,22 +77,23 @@ class LinearModels:
                                        "regime": next_regime,
                                        "weight": transition_prob[current_regime, :][next_regime],
                                        "prediction": test_prediction})
-                all_predictions.append(result)
+                forecasts.append(result)
                 
-        if len(all_predictions) == 0:
+        if len(forecasts) == 0:
             return pd.Series(0, index=returns.columns)
         else:
-            all_predictions_df = pd.concat(all_predictions, axis=0)
-            all_predictions_df["weight"] = all_predictions_df["weight"] / all_predictions_df["weight"].unique().sum()
-            all_predictions_df["weighted_prediction"] = all_predictions_df["weight"] * all_predictions_df["prediction"]
-            positions = all_predictions_df.groupby(["etf"]).sum()[["weighted_prediction"]]
+            forecasts = pd.concat(forecasts, axis=0)
 
-            # check if long only or long short
-            if self.strategy_type == "long_only":
-                positions = positions[positions["weighted_prediction"] > 0]
-            else:
-                positions = np.tanh(positions)
-            positions = positions / positions.sum()
-            positions = positions["weighted_prediction"]
+        # aggregate forecasts under different regimes
+        forecasts["weight"] = forecasts["weight"] / forecasts["weight"].unique().sum()
+        forecasts["weighted_prediction"] = forecasts["weight"] * forecasts["prediction"]
+        forecasts = forecasts.groupby(["etf"]).sum()[["weighted_prediction"]].rename(columns={"weighted_prediction": "forecasts"})
+        forecasts = forecasts["forecasts"]
+
+        # generate positions
+        positions = self.positions_from_forecasts(forecasts=forecasts,
+                                                  num_assets_to_select=self.num_assets_to_select,
+                                                  strategy_type=self.strategy_type,
+                                                  next_regime=next_regimes[0])
 
         return positions
