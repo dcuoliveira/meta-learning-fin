@@ -10,7 +10,7 @@ class PositionSizing:
                                  strategy_type: str,
                                  next_regime: int = None):
         """
-        Generate positions from forecasts.
+        Mapping from forecasts to positions to be used in a portfolio.
 
         Parameters
 
@@ -21,6 +21,8 @@ class PositionSizing:
         strategy_type : str
             Strategy type. Can be 'lo', 'lns', 'los', or 'm'.
             'lo' is long only, 'lns' is long and short, 'los' is long or short depending on the conviction, and 'm' is mixed.
+        next_regime : int
+            Next regime to consider. Only used for strategy_type = 'm'.
 
         Returns
 
