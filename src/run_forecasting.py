@@ -16,13 +16,13 @@ parser.add_argument("--clustering_method", type=str, default="kmeans")
 parser.add_argument("--k_opt_method", type=str, default="elbow")
 parser.add_argument("--memory_input", type=str, default="fredmd_transf")
 parser.add_argument("--forecast_input", type=str, default="wrds_etf_returns")
-parser.add_argument("--portfolio_method", type=str, default="linear-ridge", choices=["naive", "weighted-naive", "linear-ols", "linear-ridge", "linear-lasso"])
+parser.add_argument("--portfolio_method", type=str, default="naive", choices=["naive", "weighted-naive", "linear-ols", "linear-ridge", "linear-lasso"])
 parser.add_argument("--cv_split_type", type=str, default="tscv", choices=["tscv", "cv"])
 parser.add_argument("--cv_search_type", type=str, default="random", choices=["random", "grid"])
 parser.add_argument("--cv_folds", type=int, default=5)
 parser.add_argument("--cv_iters", type=int, default=20)
-parser.add_argument("--strategy_type", type=str, default="m", choices=["lo", "lns", "los", "m"])
-parser.add_argument("--num_assets_to_select", type=int, default=3)
+parser.add_argument("--strategy_type", type=str, default="lns", choices=["lo", "lns", "los", "m"])
+parser.add_argument("--num_assets_to_select", type=int, default=2)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
@@ -146,12 +146,6 @@ if __name__ == "__main__":
         os.makedirs(os.path.join(args.outputs_path, args.portfolio_method))
 
     # save results
-    file_name = f"results_{long_only_tag}"
-    if args.num_assets_to_select is not None:
-        file_name += f"_{args.num_assets_to_select}"
-    if args.random_regime:
-        file_name += "_rand"
-    file_name += ".pkl"
     save_path = os.path.join(args.outputs_path,
                              args.portfolio_method,
                              file_name)
