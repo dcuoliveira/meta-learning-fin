@@ -1,3 +1,6 @@
+# files
+src/data/inputs/memory/*
+
 # CRSP
 src/data/inputs/US_CRSP_NYSE/*
 
