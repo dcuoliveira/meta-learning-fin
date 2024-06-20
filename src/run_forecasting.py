@@ -77,12 +77,34 @@ if __name__ == "__main__":
     ## drop missing values
     returns = returns.dropna()
 
-    # build memory
-    regimes, centroids, regimes_probs = run_memory(data=memory_data,
-                                                   fix_start=args.fix_start,
-                                                   estimation_window=args.estimation_window,
-                                                   k_opt_method=args.k_opt_method,
-                                                   clustering_method=args.clustering_method)
+    # build file name
+    memory_dir_name = f"{args.clustering_method}_{args.k_opt_method}_random" if args.random_regime else f"{args.clustering_method}_{args.k_opt_method}"
+
+    # check if memory results file exists
+    memory_results_path = os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl")
+    if os.path.exists(memory_results_path):
+        memory_results = pd.read_pickle(memory_results_path)
+        regimes = memory_results["regimes"]
+        centroids = memory_results["centroids"]
+        regimes_probs = memory_results["regimes_probs"]
+    else:
+        regimes, centroids, regimes_probs = run_memory(data=memory_data,
+                                                    fix_start=args.fix_start,
+                                                    estimation_window=args.estimation_window,
+                                                    k_opt_method=args.k_opt_method,
+                                                    clustering_method=args.clustering_method)
+    
+        # check if results folder exists
+        if not os.path.exists(os.path.join(args.inputs_path, "memory", memory_dir_name)):
+            os.makedirs(os.path.join(args.inputs_path, "memory", memory_dir_name))
+
+        # save memory results
+        memory_results = {
+            "regimes": regimes,
+            "centroids": centroids,
+            "regimes_probs": regimes_probs,
+        }
+        save_pickle(path=os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl"), obj=memory_results)
     
     # compute transition probabilities
     regimes_transition_probs = compute_transition_matrix(data=regimes)
