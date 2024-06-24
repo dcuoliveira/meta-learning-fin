@@ -18,14 +18,14 @@ def run_forecasts(returns: pd.DataFrame,
                   fix_start: bool = False,
                   strategy_type: str = 'mixed',
                   random_regime: bool = False,):
-    
+
     model_init = model(num_assets_to_select=num_assets_to_select,
                        strategy_type=strategy_type,
                        portfolio_method=portfolio_method,
                        cv_search_type=cv_search_type,
                        cv_split_type=cv_split_type,
                        cv_folds=cv_folds,
-                       cv_iters=cv_iters)
+                       cv_iters=cv_iters,)
 
     pbar = tqdm(range(0, len(returns) - estimation_window, 1), total=len(returns) - estimation_window, desc="Running Forecasts")
     all_positions = []
@@ -66,7 +66,7 @@ def run_forecasts(returns: pd.DataFrame,
                                        current_regime=current_regime,
                                        transition_prob=transition_prob,
                                        regime_prob=regime_prob,)
-        
+
         # store positions
         all_positions.append(pd.DataFrame({test_date: positions}).T)
     all_positions_df = pd.concat(all_positions).fillna(0)
@@ -74,5 +74,3 @@ def run_forecasts(returns: pd.DataFrame,
     all_positions_df.index.name = "date"
 
     return all_positions_df
-        
-        

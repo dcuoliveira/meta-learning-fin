@@ -25,7 +25,7 @@ class Naive(PositionSizing):
         next_regime = np.argmax(next_regime_dist)
 
         labelled_returns = pd.merge(returns, regimes, left_index=True, right_index=True)
-        
+
         cluster_name = labelled_returns.columns[-1]
 
         # select dates that match the next regime
@@ -33,11 +33,11 @@ class Naive(PositionSizing):
 
         # compute expected sharpe ratio on the next regime
         forecasts = next_regime_returns.mean() / next_regime_returns.std()
-            
+
         # generate positions
         positions = self.positions_from_forecasts(forecasts=forecasts,
                                                   num_assets_to_select=self.num_assets_to_select,
                                                   strategy_type=self.strategy_type,
-                                                  next_regime=next_regime)
+                                                  next_regime=next_regime,)
 
         return positions

@@ -15,7 +15,7 @@ class LinearModels(PositionSizing):
                  cv_folds: int,
                  cv_iters: int,
                  **kwargs):
-        
+
         self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
         self.num_assets_to_select = num_assets_to_select
@@ -49,12 +49,11 @@ class LinearModels(PositionSizing):
         next_regimes = np.argsort(next_regime_dist)[::-1]
 
         labelled_returns = pd.merge(returns, regimes, left_index=True, right_index=True)
-        
+
         cluster_name = labelled_returns.columns[-1]
 
         forecasts = []
         for next_regime in next_regimes:
-
             # select dates that match the next regime
             next_regime_returns = labelled_returns[labelled_returns[cluster_name] == next_regime].drop(cluster_name, axis=1)
 
@@ -74,7 +73,7 @@ class LinearModels(PositionSizing):
                                                 n_splits=self.cv_folds,
                                                 n_jobs=-1,
                                                 seed=self.seed,
-                                                target_name=target)
+                                                target_name=target,)
 
                 X_test = test_features.values
                 test_prediction = model_search.best_estimator_.predict(X_test)
@@ -83,7 +82,7 @@ class LinearModels(PositionSizing):
                                        "weight": next_regime_dist[next_regime],
                                        "prediction": test_prediction})
                 forecasts.append(result)
-                
+
         if len(forecasts) == 0:
             return pd.Series(0, index=returns.columns)
 
@@ -97,6 +96,6 @@ class LinearModels(PositionSizing):
         positions = self.positions_from_forecasts(forecasts=forecasts,
                                                   num_assets_to_select=self.num_assets_to_select,
                                                   strategy_type=self.strategy_type,
-                                                  next_regime=next_regimes[0])
+                                                  next_regime=next_regimes[0],)
 
         return positions

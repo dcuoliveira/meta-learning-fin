@@ -1,7 +1,6 @@
 import argparse
 import pandas as pd
 import os
-import numpy as np
 
 from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
@@ -45,12 +44,12 @@ if __name__ == "__main__":
 
     # load memory data and preprocess
     memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
-    
+
     ## fix dates
     memory_data["date"] = pd.to_datetime(memory_data["date"])
     memory_data = memory_data.set_index("date")
     memory_data = memory_data.astype(float)
-    
+
     # fill missing values
     memory_data = memory_data.interpolate(method='linear', limit_direction='forward', axis=0)
     memory_data = memory_data.fillna(method='ffill')
@@ -94,8 +93,8 @@ if __name__ == "__main__":
                                                     fix_start=args.fix_start,
                                                     estimation_window=args.estimation_window,
                                                     k_opt_method=args.k_opt_method,
-                                                    clustering_method=args.clustering_method)
-    
+                                                    clustering_method=args.clustering_method,)
+
         # check if results folder exists
         if not os.path.exists(os.path.join(args.inputs_path, "memory", memory_dir_name)):
             os.makedirs(os.path.join(args.inputs_path, "memory", memory_dir_name))
@@ -107,13 +106,13 @@ if __name__ == "__main__":
             "regimes_probs": regimes_probs,
         }
         save_pickle(path=os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl"), obj=memory_results)
-    
+
     # compute transition probabilities
     regimes_transition_probs = compute_transition_matrix(data=regimes)
 
     # parse portfolio method
     model = mu.parse_portfolio_method(portfolio_method=args.portfolio_method)
-    
+
     # generate forecasts given memory
     forecasts = run_forecasts(returns=returns,
                               features=memory_data,
@@ -130,7 +129,7 @@ if __name__ == "__main__":
                               num_assets_to_select=args.num_assets_to_select,
                               fix_start=args.fix_start,
                               strategy_type=args.strategy_type,
-                              random_regime=args.random_regime)
+                              random_regime=args.random_regime,)
 
     results = {
         "regimes": regimes,
@@ -145,7 +144,7 @@ if __name__ == "__main__":
     # check if results folder exists
     if not os.path.exists(os.path.join(args.outputs_path, args.portfolio_method)):
         os.makedirs(os.path.join(args.outputs_path, args.portfolio_method))
-    
+
     # save results
     file_name = f"results_{long_only_tag}"
     if args.num_assets_to_select is not None:
