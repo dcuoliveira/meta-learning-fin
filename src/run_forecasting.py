@@ -22,7 +22,7 @@ parser.add_argument("--cv_split_type", type=str, default="tscv", choices=["tscv"
 parser.add_argument("--cv_search_type", type=str, default="random", choices=["random", "grid"])
 parser.add_argument("--cv_folds", type=int, default=5)
 parser.add_argument("--cv_iters", type=int, default=20)
-parser.add_argument("--strategy_type", type=str, default="long_only", choices=["long_only", "long_short", "mixed"])
+parser.add_argument("--strategy_type", type=str, default="m", choices=["lo", "lns", "los", "m"])
 parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
@@ -34,11 +34,13 @@ if __name__ == "__main__":
     args.fix_start = str_2_bool(args.fix_start)
     args.random_regime = str_2_bool(args.random_regime)
 
-    if args.strategy_type == "long_only":
+    if args.strategy_type == "lo":
         long_only_tag = "lo"
-    elif args.strategy_type == "long_short":
-        long_only_tag = "ls"
-    elif args.strategy_type == "mixed":
+    elif args.strategy_type == "lns":
+        long_only_tag = "lns"
+    elif args.strategy_type == "los":
+        long_only_tag = "los"
+    elif args.strategy_type == "m":
         long_only_tag = "mx"
 
     # load memory data and preprocess
@@ -77,12 +79,34 @@ if __name__ == "__main__":
     ## drop missing values
     returns = returns.dropna()
 
-    # build memory
-    regimes, centroids, regimes_probs = run_memory(data=memory_data,
-                                                   fix_start=args.fix_start,
-                                                   estimation_window=args.estimation_window,
-                                                   k_opt_method=args.k_opt_method,
-                                                   clustering_method=args.clustering_method)
+    # build file name
+    memory_dir_name = f"{args.clustering_method}_{args.k_opt_method}_random" if args.random_regime else f"{args.clustering_method}_{args.k_opt_method}"
+
+    # check if memory results file exists
+    memory_results_path = os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl")
+    if os.path.exists(memory_results_path):
+        memory_results = pd.read_pickle(memory_results_path)
+        regimes = memory_results["regimes"]
+        centroids = memory_results["centroids"]
+        regimes_probs = memory_results["regimes_probs"]
+    else:
+        regimes, centroids, regimes_probs = run_memory(data=memory_data,
+                                                    fix_start=args.fix_start,
+                                                    estimation_window=args.estimation_window,
+                                                    k_opt_method=args.k_opt_method,
+                                                    clustering_method=args.clustering_method)
+    
+        # check if results folder exists
+        if not os.path.exists(os.path.join(args.inputs_path, "memory", memory_dir_name)):
+            os.makedirs(os.path.join(args.inputs_path, "memory", memory_dir_name))
+
+        # save memory results
+        memory_results = {
+            "regimes": regimes,
+            "centroids": centroids,
+            "regimes_probs": regimes_probs,
+        }
+        save_pickle(path=os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl"), obj=memory_results)
     
     # compute transition probabilities
     regimes_transition_probs = compute_transition_matrix(data=regimes)

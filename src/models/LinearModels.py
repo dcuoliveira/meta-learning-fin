@@ -3,18 +3,20 @@ import numpy as np
 
 from models.ModelWrappers import LinearRegressionWrapper, LassoWrapper, RidgeWrapper
 from learning.hyper_params_search import hyper_params_search
+from portfolio_tools.PositionSizing import PositionSizing
 
-class LinearModels:
+class LinearModels(PositionSizing):
     def __init__(self,
+                 num_assets_to_select: int,
                  strategy_type: str, 
                  portfolio_method: str,
-                 num_assets_to_select: int,
                  cv_search_type: str,
                  cv_split_type: str,
                  cv_folds: int,
                  cv_iters: int,
                  **kwargs):
         
+        self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
         self.num_assets_to_select = num_assets_to_select
         self.cv_search_type = cv_search_type
@@ -50,7 +52,7 @@ class LinearModels:
         
         cluster_name = labelled_returns.columns[-1]
 
-        all_predictions = []
+        forecasts = []
         for next_regime in next_regimes:
 
             # select dates that match the next regime
@@ -80,32 +82,21 @@ class LinearModels:
                                        "regime": next_regime,
                                        "weight": next_regime_dist[next_regime],
                                        "prediction": test_prediction})
-                all_predictions.append(result)
+                forecasts.append(result)
                 
-        if len(all_predictions) == 0:
+        if len(forecasts) == 0:
             return pd.Series(0, index=returns.columns)
-        else:
-            all_predictions_df = pd.concat(all_predictions, axis=0)
-            all_predictions_df["weight"] = all_predictions_df["weight"] / all_predictions_df["weight"].iloc[::all_predictions_df["etf"].nunique()].sum()
-            all_predictions_df["weighted_prediction"] = all_predictions_df["weight"] * all_predictions_df["prediction"]
-            expected_sharpe = all_predictions_df.groupby(["etf"]).sum()[["weighted_prediction"]]["weighted_prediction"]
-            expected_sharpe = expected_sharpe.sort_values(ascending=False)
 
-            if self.strategy_type == 'long_only':
-                do_long_only = True
-            elif self.strategy_type == 'long_short':
-                do_long_only = False
-            elif self.strategy_type == 'mixed':
-                do_long_only = not (np.argmax(next_regime_dist) == 0)
+        forecasts = pd.concat(forecasts, axis=0)
 
-            # select top/bottom assets
-            if do_long_only:
-                n_pos = (expected_sharpe > 0).sum()
-                cur_num_assets_to_select = min(self.num_assets_to_select, n_pos)
-                selected_assets = expected_sharpe.index[:cur_num_assets_to_select]
-                positions = pd.Series([(expected_sharpe[i] / expected_sharpe[:cur_num_assets_to_select].sum()) for i in range(cur_num_assets_to_select)], index=selected_assets)
-            else:
-                es_abs = expected_sharpe[expected_sharpe.abs().sort_values(ascending=False).index[:self.num_assets_to_select]]
-                positions = pd.Series([(es_abs.abs()[i] / es_abs.abs().sum()) if es_abs[i] >= 0 else -1 * (es_abs.abs()[i] / es_abs.abs().sum()) for i in range(self.num_assets_to_select)], index=es_abs.index)
+        forecasts["weight"] = forecasts["weight"] / forecasts["weight"].iloc[::forecasts["etf"].nunique()].sum()
+        forecasts["weighted_prediction"] = forecasts["weight"] * forecasts["prediction"]
+        forecasts = forecasts.groupby(["etf"]).sum()[["weighted_prediction"]]["weighted_prediction"]
+
+        # generate positions
+        positions = self.positions_from_forecasts(forecasts=forecasts,
+                                                  num_assets_to_select=self.num_assets_to_select,
+                                                  strategy_type=self.strategy_type,
+                                                  next_regime=next_regimes[0])
 
         return positions

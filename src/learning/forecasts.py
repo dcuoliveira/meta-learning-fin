@@ -69,7 +69,6 @@ def run_forecasts(returns: pd.DataFrame,
         
         # store positions
         all_positions.append(pd.DataFrame({test_date: positions}).T)
-    
     all_positions_df = pd.concat(all_positions).fillna(0)
     all_positions_df.columns.name = None
     all_positions_df.index.name = "date"

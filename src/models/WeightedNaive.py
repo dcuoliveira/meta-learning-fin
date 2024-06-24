@@ -4,13 +4,25 @@ import numpy as np
 from utils.activation_functions import sigmoid
 
 class WeightedNaive:
-    def __init__(self, num_assets_to_select: int, strategy_type: str = 'mixed', **kwargs):
+    def __init__(self,
+                 num_assets_to_select: int,
+                 strategy_type: str = 'mixed',
+                 **kwargs):
         self.num_assets_to_select = num_assets_to_select
         self.strategy_type = strategy_type
 
-    def forward(self, returns: pd.DataFrame, regimes: pd.DataFrame, current_regime: int, transition_prob: np.ndarray, **kwargs):
+    def forward(self,
+                returns: pd.DataFrame,
+                regimes: pd.DataFrame,
+                current_regime: int,
+                transition_prob: np.ndarray,
+                regime_prob: np.ndarray,
+                **kwargs):
 
-        weights_next_regime = transition_prob[current_regime, :]
+        TEMPERATURE = 0.85
+        regime_prob_exp = np.exp(((regime_prob - regime_prob.mean()) / regime_prob.std()) / TEMPERATURE)
+        next_regime_dist = np.matmul(regime_prob_exp / regime_prob_exp.sum(), transition_prob)[0]
+        weights_next_regime = next_regime_dist
 
         labelled_returns = pd.merge(returns, regimes, left_index=True, right_index=True)
         cluster_name = labelled_returns.columns[-1]
