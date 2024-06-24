@@ -113,8 +113,12 @@ def run_memory(data: pd.DataFrame,
         pbar.set_description(f"Building memory using window: {step}")
 
     all_clusters_df = pd.concat(all_clusters, axis=1)
+    
+    probs_out = {}
+    for i in range(all_clusters_df.columns.size):
+        probs_out[all_clusters_df[f"cluster_step{i}"].dropna().index[-1].strftime("%Y-%m-%d")] = all_probs[i][-1].reshape((1, -1))
 
-    return all_clusters_df, out_centroids, all_probs
+    return all_clusters_df, out_centroids, probs_out
 
 def compute_transition_matrix(data: pd.DataFrame):
     output = {}

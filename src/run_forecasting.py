@@ -23,7 +23,7 @@ parser.add_argument("--cv_search_type", type=str, default="random", choices=["ra
 parser.add_argument("--cv_folds", type=int, default=5)
 parser.add_argument("--cv_iters", type=int, default=20)
 parser.add_argument("--strategy_type", type=str, default="long_only", choices=["long_only", "long_short", "mixed"])
-parser.add_argument("--num_assets_to_select", type=int, default=None)
+parser.add_argument("--num_assets_to_select", type=int, default=3)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     forecasts = run_forecasts(returns=returns,
                               features=memory_data,
                               regimes=regimes,
+                              regimes_probs=regimes_probs,
                               transition_probs=regimes_transition_probs,
                               estimation_window=args.estimation_window,
                               model=model,

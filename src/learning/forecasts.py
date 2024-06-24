@@ -5,6 +5,7 @@ import pandas as pd
 def run_forecasts(returns: pd.DataFrame,
                   features: pd.DataFrame,
                   regimes: pd.DataFrame,
+                  regimes_probs: dict,
                   transition_probs: dict,
                   estimation_window: int,
                   model: object,
@@ -55,6 +56,7 @@ def run_forecasts(returns: pd.DataFrame,
 
         # future Regime Prediction
         transition_prob = transition_probs[train_date]
+        regime_prob = regimes_probs[train_date]
 
         # run model
         positions = model_init.forward(returns=train_returns,
@@ -62,7 +64,8 @@ def run_forecasts(returns: pd.DataFrame,
                                        test_features=test_features,
                                        regimes=current_regime_column,
                                        current_regime=current_regime,
-                                       transition_prob=transition_prob)
+                                       transition_prob=transition_prob,
+                                       regime_prob=regime_prob,)
         
         # store positions
         all_positions.append(pd.DataFrame({test_date: positions}).T)

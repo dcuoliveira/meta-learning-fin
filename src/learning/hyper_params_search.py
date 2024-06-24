@@ -48,7 +48,7 @@ def hyper_params_search(df,
     :rtype: float
     """
 
-    X = df.drop(target_name, 1).values
+    X = df.drop(target_name, axis=1).values
     y = df[target_name].values
 
     time_split = TimeSeriesSplit(n_splits=n_splits)
