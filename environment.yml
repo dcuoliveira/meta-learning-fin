@@ -8,7 +8,7 @@ channels:
 dependencies:
   - python=3.10.0
   - mkl < 2022
-  - pandas
+  - pandas=1.4.0
   - numpy
   - tqdm
   - tensorflow
