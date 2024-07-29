@@ -145,6 +145,13 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(args.outputs_path, args.portfolio_method)):
         os.makedirs(os.path.join(args.outputs_path, args.portfolio_method))
 
+    file_name = f"results_{long_only_tag}"
+    if args.num_assets_to_select is not None:
+        file_name += f"_{args.num_assets_to_select}"
+    if args.random_regime:
+        file_name += "_rand"
+    file_name += ".pkl"
+
     # save results
     save_path = os.path.join(args.outputs_path,
                              args.portfolio_method,
