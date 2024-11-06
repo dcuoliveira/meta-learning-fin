@@ -16,7 +16,7 @@ def run_forecasts(returns: pd.DataFrame,
                   cv_iters: int,
                   num_assets_to_select: int,
                   fix_start: bool = False,
-                  strategy_type: str = 'mixed',
+                  strategy_type: str = 'm',
                   random_regime: bool = False,):
 
     model_init = model(num_assets_to_select=num_assets_to_select,
