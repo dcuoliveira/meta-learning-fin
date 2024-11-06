@@ -1,7 +1,7 @@
 from models.Naive import Naive
 from models.WeightedNaive import WeightedNaive
 from models.LinearModels import LinearModels
-
+from models.MVO import MVO
 
 class ModelUtils:
     def __init__(self):
@@ -15,6 +15,8 @@ class ModelUtils:
             return WeightedNaive
         elif portfolio_method.startswith("linear"):
             return LinearModels
+        elif portfolio_method.startswith("mvo"):
+            return MVO
         else:
             raise ValueError(f"Invalid portfolio method: {portfolio_method}")
     
