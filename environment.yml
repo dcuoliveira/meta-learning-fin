@@ -3,7 +3,6 @@ channels:
   - defaults
   - conda-forge
   - pytorch
-  - pyg
   - pip
 dependencies:
   - python=3.10.0
@@ -11,22 +10,10 @@ dependencies:
   - pandas=1.4.0
   - numpy
   - tqdm
-  - tensorflow
-  - tensorflow-probability
-  - pyg-lib
-  - pygod
   - pytorch
-  - torchvision 
-  - torchaudio 
-  - pyg 
-  - pytorch-sparse 
   - jupyterlab
-  - yfinance
   - matplotlib
-  - openpyxl
   - ipywidgets
   - cvxopt
-  - dropbox
-  - pip:
-    - torch-geometric
-    - torch-geometric-temporal
+  - kneed
+  - scikit-learn

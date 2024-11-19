@@ -64,6 +64,32 @@ class Clustering(Similarity):
         else:
             raise ValueError("Invalid k_opt_method.")
         
+    def gmm_wrapper(self, data: np.array, k: int, extra_data: np.array = None):
+        """
+        Wrapper for sklearn.cluster.KMeans.
+
+        Parameters
+        ----------
+        data : np.array
+            Input data.
+        k : int
+            Number of clusters.
+        
+        Returns
+        -------
+        clusters : np.array
+            Clusters.
+        """
+                
+        # gaussian mixture method
+        gmm = GaussianMixture(n_components=k, max_iter=self.max_iter, n_init=self.n_init, random_state=0, init_params='k-means++')
+        gmm.fit(data)
+        clusters = gmm.predict(data)
+        centroids = gmm.means_
+        probs = gmm.predict_proba(extra_data)
+
+        return clusters, centroids, probs
+        
     def kmeans_wrapper(self, data: np.array, k: int, extra_data: np.array = None):
         """
         Wrapper for sklearn.cluster.KMeans.
@@ -90,13 +116,6 @@ class Clustering(Similarity):
         probs = probs / probs.sum(axis=1, keepdims=True)
         probs = 1 - probs
         probs = probs / probs.sum(axis=1, keepdims=True)
-
-        # gaussian mixture method
-        #gmm = GaussianMixture(n_components=k, max_iter=self.max_iter, n_init=self.n_init, random_state=0, init_params='k-means++')
-        #gmm.fit(data)
-        #clusters = gmm.predict(data)
-        #centroids = gmm.means_
-        #probs = gmm.predict_proba(extra_data)
 
         return clusters, centroids, probs
     
@@ -145,6 +164,8 @@ class Clustering(Similarity):
         # compute clusters
         if method == "kmeans":
             clusters, centroids, probs = self.kmeans_wrapper(data=data, k=k, extra_data=extra_data)
+        elif method == "gmm":
+            clusters, centroids, probs = self.gmm_wrapper(data=data, k=k, extra_data=extra_data)
         else:
             raise ValueError("Invalid clustering method.")
         
