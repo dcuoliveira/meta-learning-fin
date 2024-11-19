@@ -65,7 +65,8 @@ def run_forecasts(returns: pd.DataFrame,
                                        regimes=current_regime_column,
                                        current_regime=current_regime,
                                        transition_prob=transition_prob,
-                                       regime_prob=regime_prob,)
+                                       regime_prob=regime_prob,
+                                       random_regime=random_regime,)
 
         # store positions
         all_positions.append(pd.DataFrame({test_date: positions}).T)

@@ -8,7 +8,7 @@ class PositiveRetRatio(nn.Module):
 
         self.name = "% Positive Ret."
 
-    def forward(self, returns, ascent=False):
+    def forward(self, returns, ascent=False, **kwargs):
     
         # portfolio ratio of days with positive return
         positive_ret_ratio = (returns > 0).sum() / (returns.shape[0])

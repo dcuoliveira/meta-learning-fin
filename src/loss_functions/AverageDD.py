@@ -8,7 +8,7 @@ class AverageDD(nn.Module):
 
         self.name = "AvgDD"
 
-    def forward(self, returns, ascent=False):
+    def forward(self, returns, ascent=False, **kwargs):
         
         # cummualitive portfolio returns
         cummulative_portfolio_returns = torch.exp(torch.cumsum(returns, dim=0))

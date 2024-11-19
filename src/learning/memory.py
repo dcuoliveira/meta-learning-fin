@@ -41,7 +41,9 @@ def run_memory(data: pd.DataFrame,
 
         # compute clusters for easy days
         low_pass_k = 2
-        cutoff_date = pd.Timestamp('2021-06-01')
+        cutoff_date = pd.Timestamp('2020-03-01')
+        #cutoff_date = pd.Timestamp('2024-06-01')
+        #cutoff_date = pd.Timestamp('2021-06-01')
         #cutoff_date = pd.Timestamp('2021-11-01')
         if train.index.to_list()[-1] > cutoff_date:
             low_pass_k = 3
