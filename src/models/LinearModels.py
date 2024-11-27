@@ -41,7 +41,8 @@ class LinearModels(PositionSizing):
                 regimes: pd.DataFrame,
                 current_regime: int,
                 transition_prob: np.ndarray,
-                regime_prob: np.ndarray,):
+                regime_prob: np.ndarray,
+                random_regime: bool = False,):
 
         TEMPERATURE = 0.85
         regime_prob_exp = np.exp(((regime_prob - regime_prob.mean()) / regime_prob.std()) / TEMPERATURE)

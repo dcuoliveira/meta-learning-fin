@@ -61,6 +61,88 @@ if __name__ == "__main__":
     ## drop missing values
     memory_data = memory_data.dropna()
 
+    import numpy as np
+    import pandas as pd
+
+    data_factors = pd.read_csv('data/inputs/fredmd_factors_raw.csv')
+    transformation_codes = data_factors.iloc[0]
+    data_factors = data_factors.drop(0)
+    transformation_codes = transformation_codes.to_dict()
+    del transformation_codes['sasdate']
+
+    small = 1e-6
+    for column in data_factors.columns:
+        if column in transformation_codes:
+            match int(transformation_codes[column]):
+                case 1:
+                    data_factors[column] = data_factors[column]
+
+                case 2: # First difference: x(t)-x(t-1)
+                    data_factors[column] = data_factors[column].diff()
+
+                case 3: # Second difference: (x(t)-x(t-1))-(x(t-1)-x(t-2))
+                    data_factors[column] = data_factors[column].diff().diff()
+
+                case 4: # Natural log: ln(x)
+                    data_factors[column] = data_factors[column].apply(lambda x: np.log(x) if x > small else None)
+
+                case 5: # First difference of natural log: ln(x)-ln(x-1)
+                    data_factors[column] = data_factors[column].apply(lambda x: np.log(x) if x > small else None)
+                    data_factors[column] = data_factors[column].diff()
+
+                case 6: # Second difference of natural log: (ln(x)-ln(x-1))-(ln(x-1)-ln(x-2))
+                    data_factors[column] = data_factors[column].apply(lambda x: np.log(x) if x > small else None)
+                    data_factors[column] = data_factors[column].diff().diff()
+
+                case 7: # First difference of percent change: (x(t)/x(t-1)-1)-(x(t-1)/x(t-2)-1)
+                    data_factors[column] = data_factors[column].pct_change()
+                    data_factors[column] = data_factors[column].diff()
+
+    data_factors = data_factors.drop([1, 2]).reset_index(drop=True)
+
+    data_factors = data_factors.ffill()
+    data_factors = data_factors.fillna(0.0)
+
+    data_factors['sasdate'] = pd.to_datetime(data_factors['sasdate'], format='%m/%d/%Y')
+    data_factors = data_factors.rename(columns={'sasdate': 'date'})
+    data_factors = data_factors.set_index('date')
+
+
+    from sklearn.decomposition import PCA
+    import matplotlib.pyplot as plot
+
+    df_normalized = data_factors
+
+    # You must normalize the data before applying the fit method
+    df_normalized=(df_normalized - df_normalized.mean()) / df_normalized.std()
+    pca = PCA(n_components=df_normalized.shape[1])
+    pca.fit(df_normalized)
+
+    # Reformat and view results
+    loadings = pd.DataFrame(pca.components_.T,
+    columns=['PC%s' % _ for _ in range(len(df_normalized.columns))],
+    index=df_normalized.columns)
+    print(loadings)
+
+    DESIRE_EXPLAINED_VARIANCE = 0.95
+    total_explained_variance = 0.0
+    for i, x in enumerate(pca.explained_variance_ratio_):
+        total_explained_variance += x
+        if total_explained_variance >= DESIRE_EXPLAINED_VARIANCE:
+            print(f"Number of components to explain {DESIRE_EXPLAINED_VARIANCE * 100}% variance: {i+1}")
+            break
+    n_components = i+1
+
+    # Use the top n components to transform the data
+    pca = PCA(n_components=df_normalized.shape[1])
+    pca.fit(df_normalized)
+    df_transformed = pd.DataFrame(pca.transform(df_normalized),
+    columns=['PC%s' % _ for _ in range(df_normalized.shape[1])],
+    index=df_normalized.index)
+    df_transformed = df_transformed[['PC%s' % _ for _ in range(n_components)]]
+
+    memory_data = df_transformed
+
     # load forecast data and preprocess
     returns = pd.read_csv(os.path.join(args.inputs_path, f'{args.forecast_input}.csv'))
     returns = returns[[col for col in returns.columns if "t+1" not in col]]
@@ -80,9 +162,10 @@ if __name__ == "__main__":
 
     # build file name
     memory_dir_name = f"{args.clustering_method}_{args.k_opt_method}_random" if args.random_regime else f"{args.clustering_method}_{args.k_opt_method}"
+    memory_dir_name = 'kmeans'
 
     # check if memory results file exists
-    memory_results_path = os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl")
+    memory_results_path = os.path.join(args.inputs_path, "memory", memory_dir_name, "results_manual_3_elbow.pkl")
     if os.path.exists(memory_results_path):
         memory_results = pd.read_pickle(memory_results_path)
         regimes = memory_results["regimes"]
