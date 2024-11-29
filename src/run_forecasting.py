@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import numpy as np
 import os
 
 from learning.memory import run_memory, compute_transition_matrix
@@ -60,9 +61,6 @@ if __name__ == "__main__":
 
     ## drop missing values
     memory_data = memory_data.dropna()
-
-    import numpy as np
-    import pandas as pd
 
     data_factors = pd.read_csv(os.path.join(args.inputs_path, 'fredmd_factors_raw.csv'))
     transformation_codes = data_factors.iloc[0]
