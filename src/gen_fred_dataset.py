@@ -3,8 +3,7 @@ import pandas as pd
 import numpy as np
 from FredMD import FredMD
 
-from settings import DATA_UTILS_PATH, INPUTS_PATH
-
+INPUTS_PATH = DATA_UTILS_PATH = os.path.join(os.path.dirname(__file__), 'data', 'inputs')
 START_DATE = "1960-01-01"
 
 def gen_fred_dataset(start_date):
