@@ -65,6 +65,7 @@ class BL(Estimators, Naive):
                 transition_prob: np.ndarray,
                 regime_prob: np.ndarray,
                 num_timesteps_out: int = 1,
+                random_regime: bool = False,
                 **kwargs) -> torch.Tensor:
         
         K = returns.shape[1]
@@ -73,7 +74,8 @@ class BL(Estimators, Naive):
                                           regimes=regimes,
                                           regime_prob=regime_prob,
                                           transition_prob=transition_prob,
-                                          risk_adjusted=False)
+                                          risk_adjusted=False,
+                                          random_regime=random_regime)
         
         # adjust side of positions
         if self.strategy_type == 'lo':
