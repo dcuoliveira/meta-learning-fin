@@ -57,6 +57,9 @@ def run_forecasts(returns: pd.DataFrame,
         # future Regime Prediction
         transition_prob = transition_probs[train_date]
         regime_prob = regimes_probs[train_date]
+        if random_regime:
+            transition_prob = np.ones((transition_prob.shape[0], transition_prob.shape[1])) * 1/transition_prob.shape[0]
+            regime_prob = np.ones((regime_prob.shape[0], regime_prob.shape[1])) * 1/transition_prob.shape[0]
 
         # run model
         positions = model_init.forward(returns=train_returns,
