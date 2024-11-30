@@ -48,8 +48,12 @@ class PositionSizing:
         elif strategy_type == 'lo':
             n_pos = (forecasts > 0).sum()
             cur_num_assets_to_select = min(num_assets_to_select, n_pos)
-            selected_assets = forecasts.index[:cur_num_assets_to_select]
-            positions = pd.Series([(forecasts[i] / forecasts[:cur_num_assets_to_select].sum()) for i in range(cur_num_assets_to_select)], index=selected_assets)
+            if cur_num_assets_to_select == 0:
+                selected_assets = forecasts.index[:num_assets_to_select]
+                positions = pd.Series([0 for i in range(num_assets_to_select)], index=selected_assets)
+            else:
+                selected_assets = forecasts.index[:cur_num_assets_to_select]
+                positions = pd.Series([(forecasts[i] / forecasts[:cur_num_assets_to_select].sum()) for i in range(cur_num_assets_to_select)], index=selected_assets)
         elif strategy_type == 'los':
             es_abs = forecasts[forecasts.abs().sort_values(ascending=False).index[:num_assets_to_select]]
             positions = pd.Series([(es_abs.abs()[i] / es_abs.abs().sum()) if es_abs[i] >= 0 else -1 * (es_abs.abs()[i] / es_abs.abs().sum()) for i in range(num_assets_to_select)], index=es_abs.index)
