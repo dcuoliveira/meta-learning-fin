@@ -33,33 +33,22 @@ class BL(Estimators, Naive):
         return (np.dot(weights, self.mean_t) - ((self.risk_aversion / 2) * np.sqrt(np.dot(weights, np.dot(self.cov_t, weights))))) * c
 
     def compute_mu_bl(self, prior_mean, prior_cov, P, Q, Omega):
-        """
-        Computes the Black-Litterman expected returns.
+        """Computes Black-Litterman expected returns with improved numerical stability."""
+
+        eps = 1e-8
+
+        prior_mean = torch.tensor(prior_mean, dtype=torch.float64)
+        prior_cov = torch.tensor(prior_cov, dtype=torch.float64)
+        P = torch.tensor(P, dtype=torch.float64) 
+        Q = torch.tensor(Q, dtype=torch.float64)
+        Omega = torch.tensor(Omega, dtype=torch.float64)
         
-        Args:
-            prior_mean (np.array): Prior mean (market equilibrium returns).
-            prior_cov (np.array): Prior covariance matrix.
-            P (np.array): Matrix representing views on assets.
-            Q (np.array): Views on returns for each asset.
-            Omega (np.array): Uncertainty in the views (diagonal matrix).
-            
-        Returns:
-            np.array: Black-Litterman adjusted expected returns.
-        """
-        if (Q == 0).sum() != Q.shape[0]:
-            # Convert all inputs to Float tensors to ensure consistency
-            prior_mean = torch.tensor(prior_mean, dtype=torch.float32)
-            prior_cov = torch.tensor(prior_cov, dtype=torch.float32)
-            P = torch.tensor(P, dtype=torch.float32)
-            Q = torch.tensor(Q, dtype=torch.float32)
-            Omega = torch.tensor(Omega, dtype=torch.float32)
-
-            tau_prior_cov = self.tau * prior_cov
-            middle_term = torch.linalg.inv(tau_prior_cov + P.T @ torch.linalg.inv(Omega) @ P)
-            posterior_mean = middle_term @ (tau_prior_cov @ torch.linalg.inv(tau_prior_cov) @ prior_mean + P.T @ torch.linalg.inv(Omega) @ Q)
-        else:
-            posterior_mean = prior_mean
-
+        tau_sigma_inv = torch.linalg.inv(self.tau * prior_cov + eps * torch.eye(prior_cov.shape[0]))
+        omega_inv = torch.linalg.inv(Omega + eps * torch.eye(Omega.shape[0]))
+        
+        M = torch.linalg.inv(tau_sigma_inv + P.T @ omega_inv @ P)
+        posterior_mean = M @ (tau_sigma_inv @ prior_mean + P.T @ omega_inv @ Q)
+                
         return posterior_mean
     
     def forward(self,
@@ -96,7 +85,8 @@ class BL(Estimators, Naive):
 
         # build matrix of linear combination of the prior expected returns estimate (eq. returns)
         P = torch.zeros(size=(Q.shape[0], K))
-        for i in range(P.shape[0]):
+        j = 0
+        for i in range(P.shape[1]):
             if Q_expanded.iloc[i] != 0:
                 if self.strategy_type == 'lo':
                     P_i = torch.zeros((1, K))
@@ -108,10 +98,11 @@ class BL(Estimators, Naive):
                     raise Exception(f"Strategy Type Not Supported: {self.strategy_type}")
 
                 # add to P matrix
-                P[i,:] = P_i
+                P[j,:] = P_i
+                j += 1
 
-        # build matrix of views uncertainty - hard coded to 5%
-        diagonal_tensor = torch.full((P.shape[0],), 0.05)
+        # build matrix of views uncertainty
+        diagonal_tensor = torch.full((P.shape[0],), Q.var())
         Omega = torch.diag_embed(diagonal_tensor)
         
         # transform series to tensor
