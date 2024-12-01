@@ -1,2 +1,9 @@
-python run_forecasting.py --portfolio_method mvo --strategy_type lo
-python run_forecasting.py --portfolio_method mvo --strategy_type lns
+python run_forecasting.py --portfolio_method mvo --strategy_type lo --num_assets_to_select 2 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lns --num_assets_to_select 2 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lo --num_assets_to_select 2 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lo --num_assets_to_select 3 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lns --num_assets_to_select 3 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lo --num_assets_to_select 3 --random_regime False 
+python run_forecasting.py --portfolio_method mvo --strategy_type lns --num_assets_to_select 4 --random_regime False
+python run_forecasting.py --portfolio_method mvo --strategy_type lo --num_assets_to_select 4 --random_regime False 
+python run_forecasting.py --portfolio_method mvo --strategy_type lns --num_assets_to_select 4 --random_regime False 
