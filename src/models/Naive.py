@@ -40,7 +40,6 @@ class Naive(PositionSizing):
     def forward(self,
                 returns: pd.DataFrame,
                 regimes: pd.DataFrame,
-                current_regime: int,
                 transition_prob: np.ndarray,
                 regime_prob: np.ndarray,
                 random_regime: bool = False,
