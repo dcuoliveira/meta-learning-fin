@@ -45,16 +45,8 @@ class MVO(Estimators):
 
     def forward(self,
                 returns: torch.Tensor,
-                transition_prob: np.ndarray,
-                regime_prob: np.ndarray,
                 num_timesteps_out: int=1,
                 **kwargs) -> torch.Tensor:
-        
-        TEMPERATURE = 0.85
-        regime_prob_exp = np.exp(((regime_prob - regime_prob.mean()) / regime_prob.std()) / TEMPERATURE)
-        next_regime_dist = np.matmul(regime_prob_exp / regime_prob_exp.sum(), transition_prob)[0]
-        next_regimes = np.argsort(next_regime_dist)[::-1]
-        next_regime = next_regimes[0]
         
         returns_tensor = torch.tensor(returns.values)
         
@@ -65,23 +57,15 @@ class MVO(Estimators):
 
         # covariance estimates
         self.cov_t = self.MLECovariance(returns_tensor)
-        
-        if self.strategy_type == 'm':
-            if not next_regime == 0:
-                used_strategy = 'lo'
-            else:
-                used_strategy = 'los'  
-        else:
-            used_strategy = self.strategy_type
 
-        if used_strategy == 'lo':
+        if self.strategy_type == 'lo':
             constraints = [
                 {'type': 'eq', 'fun': lambda x: np.sum(np.abs(x)) - 1} # allocate exactly all your assets (no leverage)
             ]
             bounds = [(0, 1) for _ in range(K)] # long-only
 
             w0 = np.random.uniform(0, 1, size=K)
-        elif used_strategy == 'lns':
+        elif self.strategy_type == 'lns':
             constraints = [
                 {'type': 'eq', 'fun': lambda x: np.sum(x) - 0},  # "market-neutral" portfolio
                 {'type': 'eq', 'fun': lambda x: np.sum(np.abs(x)) - 1}, # allocate exactly all your assets (no leverage)
@@ -89,7 +73,7 @@ class MVO(Estimators):
             bounds = [(-1, 1) for _ in range(K)]
 
             w0 = np.random.uniform(-1, 1, size=K)
-        elif used_strategy == 'los':
+        elif self.strategy_type == 'los':
             constraints = [
                 {'type': 'eq', 'fun': lambda x: np.sum(np.abs(x)) - 1}, # allocate exactly all your assets (no leverage)
             ]
@@ -97,7 +81,7 @@ class MVO(Estimators):
 
             w0 = np.random.uniform(-1, 1, size=K)
         else:
-            raise Exception(f'Strategy Type not Implemented: {used_strategy}')
+            raise Exception(f'Strategy Type not Implemented: {self.strategy_type}')
 
         # perform the optimization
         opt_output = opt.minimize(self.objective, w0, constraints=constraints, bounds=bounds)

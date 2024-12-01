@@ -46,17 +46,20 @@ class BL(Estimators, Naive):
         Returns:
             np.array: Black-Litterman adjusted expected returns.
         """
-        # Convert all inputs to Float tensors to ensure consistency
-        prior_mean = torch.tensor(prior_mean, dtype=torch.float32)
-        prior_cov = torch.tensor(prior_cov, dtype=torch.float32)
-        P = torch.tensor(P, dtype=torch.float32)
-        Q = torch.tensor(Q, dtype=torch.float32)
-        Omega = torch.tensor(Omega, dtype=torch.float32)
+        if (Q == 0).sum() != Q.shape[0]:
+            # Convert all inputs to Float tensors to ensure consistency
+            prior_mean = torch.tensor(prior_mean, dtype=torch.float32)
+            prior_cov = torch.tensor(prior_cov, dtype=torch.float32)
+            P = torch.tensor(P, dtype=torch.float32)
+            Q = torch.tensor(Q, dtype=torch.float32)
+            Omega = torch.tensor(Omega, dtype=torch.float32)
 
-        tau_prior_cov = self.tau * prior_cov
-        middle_term = torch.linalg.inv(tau_prior_cov + P.T @ torch.linalg.inv(Omega) @ P)
-        posterior_mean = middle_term @ (tau_prior_cov @ torch.linalg.inv(tau_prior_cov) @ prior_mean + P.T @ torch.linalg.inv(Omega) @ Q)
-        
+            tau_prior_cov = self.tau * prior_cov
+            middle_term = torch.linalg.inv(tau_prior_cov + P.T @ torch.linalg.inv(Omega) @ P)
+            posterior_mean = middle_term @ (tau_prior_cov @ torch.linalg.inv(tau_prior_cov) @ prior_mean + P.T @ torch.linalg.inv(Omega) @ Q)
+        else:
+            posterior_mean = prior_mean
+
         return posterior_mean
     
     def forward(self,
@@ -80,6 +83,8 @@ class BL(Estimators, Naive):
         # adjust side of positions
         if self.strategy_type == 'lo':
             views = views[views>0]
+            if views.shape[0] == 0:
+                views = returns.iloc[-1]*0
         elif self.strategy_type == 'lns':
             pass
         else:

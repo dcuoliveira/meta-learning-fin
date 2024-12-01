@@ -47,7 +47,7 @@ class LinearModels(PositionSizing):
         TEMPERATURE = 0.85
         regime_prob_exp = np.exp(((regime_prob - regime_prob.mean()) / regime_prob.std()) / TEMPERATURE)
         next_regime_dist = np.matmul(regime_prob_exp / regime_prob_exp.sum(), transition_prob)[0]
-        if np.isnan(next_regime_dist).sum() == next_regime_dist.shape[0]:
+        if random_regime:
             next_regime_dist = np.ones((next_regime_dist.shape[0], )) * 1/next_regime_dist.shape[0]
         next_regimes = np.argsort(next_regime_dist)[::-1]
 
