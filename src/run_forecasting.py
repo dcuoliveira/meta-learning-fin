@@ -5,7 +5,7 @@ import os
 
 from learning.memory import run_memory, compute_transition_matrix
 from learning.forecasts import run_forecasts
-from utils.conn_data import save_pickle
+from utils.conn_data import save_pickle, load_pickle
 from utils.parsers import str_2_bool
 from models.ModelUtils import ModelUtils as mu
 
@@ -23,8 +23,8 @@ parser.add_argument("--cv_search_type", type=str, default="random", choices=["ra
 parser.add_argument("--cv_folds", type=int, default=5)
 parser.add_argument("--cv_iters", type=int, default=20)
 parser.add_argument("--strategy_type", type=str, default="lo", choices=["lo", "lns", "los", "m"])
-parser.add_argument("--num_assets_to_select", type=int, default=4)
-parser.add_argument("--random_regime", type=str, default="True")
+parser.add_argument("--num_assets_to_select", type=int, default=5)
+parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))
 parser.add_argument("--outputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "outputs"))
 
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # check if memory results file exists
     memory_results_path = os.path.join(args.inputs_path, "memory", memory_dir_name, "results.pkl")
     if os.path.exists(memory_results_path):
-        memory_results = pd.read_pickle(memory_results_path)
+        memory_results = load_pickle(memory_results_path)
         regimes = memory_results["regimes"]
         centroids = memory_results["centroids"]
         regimes_probs = memory_results["regimes_probs"]
