@@ -22,7 +22,7 @@ parser.add_argument("--cv_split_type", type=str, default="tscv", choices=["tscv"
 parser.add_argument("--cv_search_type", type=str, default="random", choices=["random", "grid"])
 parser.add_argument("--cv_folds", type=int, default=5)
 parser.add_argument("--cv_iters", type=int, default=20)
-parser.add_argument("--strategy_type", type=str, default="lo", choices=["lo", "lns", "los", "m"])
+parser.add_argument("--strategy_type", type=str, default="lns", choices=["lo", "lns", "los", "m"])
 parser.add_argument("--num_assets_to_select", type=int, default=5)
 parser.add_argument("--random_regime", type=str, default="False")
 parser.add_argument("--inputs_path", type=str, default=os.path.join(os.path.dirname(__file__), "data", "inputs"))

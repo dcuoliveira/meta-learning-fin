@@ -63,16 +63,72 @@ if __name__ == '__main__':
     tickers = {
 
         # commodities
-        'ZG': ['close'], 'ZK': ['close'], 'ZU': ['close'],
-
+        ## grains
+        'ZC': ['close'], # corn
+        'ZO': ['close'], # oats
+        'ZL': ['close'], # soybean oil
+        'ZR': ['close'], # rough rice
+        'ZW': ['close'], # wheat
+        ## softs
+        'CC': ['close'], # cocoa
+        'DA': ['close'], # milk
+        'JO': ['close'], # orange juice
+        'KC': ['close'], # coffee
+        'SB': ['close'], # sugar
+        ## livestock
+        'LB': ['close'], # lumber
+        'ZF': ['close'], # feeder cattle
+        'ZZ': ['close'], # lean hogs
+        'ZT': ['close'], # live cattle
+        ## metals
+        'ZG': ['close'], # gold
+        'ZI': ['close'], # silver
+        'ZK': ['close'], # copper
+        'ZP': ['close'], # platinum
+        ## energy
+        'ZN': ['close'], # natural gas
+        'ZU': ['close'], # crude oil
+        
         # bonds
-        'ZB': ['close'], 'ZC': ['close'], 'ZF': ['close'], 'ZT': ['close'],
+        'CB': ['close'], # 10-year canadian bond
+        'DT': ['close'], # euro bund
+        'EC': ['close'], # eurodollar
+        'FB': ['close'], # 5-year us treasury bond
+        'GS': ['close'], # gilt
+        'TU': ['close'], # 2-year us treasury note
+        'TY': ['close'], # 10-year us treasury note
+        'UB': ['close'], # ultra us treasury bond
+        # 'US': ['close'], # T-bonds
+        'UZ': ['close'], # euro schatz
+        
+        # # fx
+        'AN': ['close'], # audusd
+        'CN': ['close'], # cadusd
+        'BN': ['close'], # gbpusd
+        'DX': ['close'], # us dollar index
+        'JN': ['close'], # jpyusd
+        'MP': ['close'], # mxnusd
+        'SN': ['close'], # chfusd
 
-        # fx
-        'FN': ['close'], 'BN': ['close'], 'CN': ['close'], 'AN': ['close'], 'JN': ['close'],
+        # # equities
+        # 'FN': ['close'], # euro
+        'NK': ['close'], # nikkei
+        # 'CA': ['close'], # cac 40
+        # 'EN': ['close'], # nasdaq mini
+        # 'ER': ['close'], # russell 2000 mini
+        'ES': ['close'], # e-mini s&p 500
+        'LX': ['close'], # ftse 100
+        # 'MD': ['close'], # S&P 400 midcap
+        'XU': ['close'], # euro stoxx 50
 
-        # equities
-        'ES': ['close'], 'XU': ['close'], 'NK': ['close'], 'LX': ['close'],
+        # 'XU': ['close'], # euro stoxx 50
+        # 'ES': ['close'], # e-mini s&p 500
+        # 'TY': ['close'], # 10-year us treasury note
+        # 'FB': ['close'], # 5-year us treasury bond
+        # 'ZG': ['close'], # gold
+        # 'ZI': ['close'], # silver
+        # 'ZN': ['close'], # natural gas
+        # 'ZU': ['close'], # crude oil
 
     }
 
