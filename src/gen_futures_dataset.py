@@ -8,7 +8,7 @@ FUTURES_DATA_PATH = os.path.join(INPUTS_PATH, 'pinnacle', 'CLCDATA')
 
 parser = argparse.ArgumentParser(description='Generate futures dataset')
 parser.add_argument('--continuous_future_method', type=str, default='RAD')
-parser.add_argument('--output_path', type=str, default=os.path.join(INPUTS_PATH, 'futures_dataset.csv'))
+parser.add_argument('--output_path', type=str, default=INPUTS_PATH)
 
 def generate_futures_dataset(tickers, continuous_future_method):
 
@@ -46,9 +46,13 @@ def generate_futures_dataset(tickers, continuous_future_method):
     tickers_data_nonan = tickers_data.copy().dropna(how='any')
 
     # ticker returns
-    tickers_returns = tickers_data_nonan.pct_change().dropna()
+    tickers_returns_daily = tickers_data_nonan.copy().pct_change().dropna()
 
-    return tickers_returns
+    # ticker returns monthly
+    tickers_data_nonan_monthly = tickers_data_nonan.resample('ME').last()
+    tickers_returns_monthly = tickers_data_nonan_monthly.copy().pct_change().dropna()
+
+    return tickers_returns_daily, tickers_returns_monthly
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -72,8 +76,13 @@ if __name__ == '__main__':
 
     }
 
-    tickers_returns = generate_futures_dataset(tickers, args.continuous_future_method)
+    tickers_returns_daily, tickers_returns_monthly = generate_futures_dataset(tickers, args.continuous_future_method)
 
     # save to csv
-    tickers_returns.to_csv(args.output_path)
+    tickers_returns_daily.to_csv(os.path.join(args.output_path, 'futures_dataset_daily.csv'))
+    tickers_returns_monthly.to_csv(os.path.join(args.output_path, 'futures_dataset_monthly.csv'))
+
+    print(f"Futures dataset generated with {len(tickers)} tickers using {continuous_future_method} method.")
+    print(f"Daily returns saved to {os.path.join(args.output_path, 'futures_dataset_daily.csv')}")
+    print(f"Monthly returns saved to {os.path.join(args.output_path, 'futures_dataset_monthly.csv')}")
 
