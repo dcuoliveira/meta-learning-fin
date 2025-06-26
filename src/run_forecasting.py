@@ -43,6 +43,11 @@ if __name__ == "__main__":
     elif args.strategy_type == "m":
         long_only_tag = "mx"
 
+    # print arguments
+    print("Arguments:")
+    for arg in vars(args):
+        print(f"{arg}: {getattr(args, arg)}")
+
     # load memory data and preprocess
     memory_data = pd.read_csv(os.path.join(args.inputs_path, f'{args.memory_input}.csv'))
 
