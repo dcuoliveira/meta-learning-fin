@@ -1,0 +1,12 @@
+python run_forecasting.py --portfolio_method bl --strategy_type lo --num_assets_to_select 2 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --num_assets_to_select 2 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lo --num_assets_to_select 3 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --num_assets_to_select 3 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lo --num_assets_to_select 4 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --num_assets_to_select 4 --random_regime False --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lo --random_regime True --num_assets_to_select 2 --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --random_regime True --num_assets_to_select 2 --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lo --random_regime True --num_assets_to_select 3 --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --random_regime True --num_assets_to_select 3 --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lo --random_regime True --num_assets_to_select 4 --forecast_input futures_dataset_clpca_monthly
+python run_forecasting.py --portfolio_method bl --strategy_type lns --random_regime True --num_assets_to_select 4 --forecast_input futures_dataset_clpca_monthly
