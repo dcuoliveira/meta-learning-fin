@@ -34,6 +34,7 @@ class MVO(Estimators):
         self.covariance_estimator = covariance_estimator
         self.estimated_means = list()
         self.estimated_covs = list()
+        self.num_assets_to_select = kwargs["num_assets_to_select"]
 
     def objective(self,
                   weights: torch.Tensor,
@@ -90,4 +91,11 @@ class MVO(Estimators):
         wt = pd.DataFrame(wt, columns=list(returns.columns))
         wt = wt.squeeze(axis=0)
 
-        return wt
+        positions = self.positions_from_forecasts(forecasts=pd.Series(wt),
+                                                  num_assets_to_select=self.num_assets_to_select,
+                                                  strategy_type=self.strategy_type)
+
+        # expand positions to match the original DataFrame structure
+        positions = positions.reindex(returns.columns, fill_value=0)
+
+        return positions

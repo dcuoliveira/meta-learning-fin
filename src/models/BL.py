@@ -5,8 +5,9 @@ import pandas as pd
 
 from estimators.Estimators import Estimators
 from models.Naive import Naive
+from portfolio_tools.PositionSizing import PositionSizing
 
-class BL(Estimators, Naive):
+class BL(Estimators, Naive, PositionSizing):
     def __init__(self,
                  strategy_type,
                  risk_aversion: float = 1,
@@ -24,6 +25,7 @@ class BL(Estimators, Naive):
         self.strategy_type = strategy_type
         self.risk_aversion = risk_aversion
         self.tau = tau
+        self.num_assets_to_select = kwargs["num_assets_to_select"]
 
     def objective(self,
                   weights: torch.Tensor,
@@ -142,4 +144,12 @@ class BL(Estimators, Naive):
         wt = pd.DataFrame(wt, columns=list(returns.columns))
         wt = wt.squeeze(axis=0)
 
-        return wt
+        positions = self.positions_from_forecasts(forecasts=pd.Series(wt),
+                                                  num_assets_to_select=self.num_assets_to_select,
+                                                  strategy_type=self.strategy_type)
+
+        # expand positions to match the original DataFrame structure
+        positions = positions.reindex(returns.columns, fill_value=0)
+        views = views.reindex(returns.columns, fill_value=0)
+
+        return positions
