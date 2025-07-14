@@ -4,8 +4,9 @@ import scipy.optimize as opt
 import pandas as pd
 
 from estimators.Estimators import Estimators
+from portfolio_tools.PositionSizing import PositionSizing
 
-class MVO(Estimators):
+class MVO(Estimators, PositionSizing):
     def __init__(self,
                  strategy_type,
                  risk_aversion: float=1,
